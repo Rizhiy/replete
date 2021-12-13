@@ -1,0 +1,7 @@
+include:
+- project: utilities/ntu
+  file: ntu/release/gitlab-python-tests-basic.yml
+
+.common__tests:
+  script:
+  - ntest --doctest-modules --coverage --exitfirst
