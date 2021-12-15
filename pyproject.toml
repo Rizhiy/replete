@@ -1,0 +1,36 @@
+[build-system]
+requires = ["flit_core >=3.4,<4"]
+build-backend = "flit_core.buildapi"
+
+[project]
+name = "nt_utils"
+authors = [{name = "Anton Vasilev", email = "a.vasilev@neurotrade.ru"}]
+readme = "README.md"
+requres-python = ">=3.8"
+dynamic = ["version", "description"]
+dependencies = [
+    "nt-utils",
+]
+
+[project.optional-dependencies]
+tests = [
+    "pytest",
+    "pytest-cov",
+    "ntu"  #  "nt-tools",
+]
+dev = [
+    "pip-tools",
+    "wheel",
+]
+
+[tool.flit.sdist]
+include = [
+    "README.md",
+]
+exclude = [
+    ".gitignore",
+    "tests/*",
+]
+
+[tool.semantic_release]
+version_variable = "nt_utils/__init__.py:__version__"

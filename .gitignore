@@ -1,0 +1,9 @@
+# IDE
+.idea
+.vscode
+
+# Local files
+*.pyc
+*.egg-info
+.DS_Store
+dist
