@@ -9,7 +9,6 @@ readme = "README.md"
 requres-python = ">=3.8"
 dynamic = ["version", "description"]
 dependencies = [
-    "nt-utils",
 ]
 
 [project.optional-dependencies]

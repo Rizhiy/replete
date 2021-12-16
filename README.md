@@ -8,17 +8,18 @@
 
 Released version: `pip install nt-utils`
 
-Editable: use
+
+## Development
+
+Editable installation:
 
 ```bash
 pip install -U 'pip>=21.3.1' && \
 git clone git@git@192.168.135.12:utilities/nt-utils && \
 cd nt-utils && \
-pip install -e '.[dev]'
+pip install -e '.[dev,tests]'
 ```
 
-
-## Development
 
 ### Formatting
 
