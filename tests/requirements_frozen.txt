@@ -34,7 +34,7 @@ isort==5.4.2              # via ntu
 jeepney==0.7.1            # via keyring, secretstorage
 keyring==23.4.0           # via twine
 mccabe==0.6.1             # via flake8
-ntu~=0.21.0               # via nt-utils
+ntu~=0.22.0               # via nt-utils
 packaging==21.3           # via bleach, pytest, setuptools-scm
 pathspec==0.9.0           # via black
 pkginfo==1.8.2            # via twine
@@ -46,12 +46,12 @@ pycparser==2.21           # via cffi
 pyflakes==2.4.0           # via autoflake, flake8
 pygments==2.10.0          # via readme-renderer
 pyparsing==3.0.6          # via packaging
-pytest==6.2.5             # via ntu, pytest-cov
-pytest-cov==3.0.0         # via ntu
+pytest==6.2.5             # via nt-utils, ntu, pytest-cov
+pytest-cov==3.0.0         # via nt-utils, ntu
 python-gitlab==2.10.1     # via python-semantic-release
 python-semantic-release==7.23.0  # via ntu
 pyyaml==6.0               # via ntu
-readme-renderer==31.0     # via twine
+readme-renderer==32.0     # via twine
 regex==2021.11.10         # via black
 requests==2.26.0          # via ntu, python-gitlab, python-semantic-release, requests-toolbelt, twine
 requests-toolbelt==0.9.1  # via python-gitlab, twine
@@ -62,7 +62,7 @@ setuptools-scm==6.3.2     # via dotty-dict
 six==1.16.0               # via bleach
 smmap==5.0.0              # via gitdb
 toml==0.10.2              # via black, ntu, pytest
-tomli==1.2.2              # via coverage, setuptools-scm
+tomli==2.0.0              # via coverage, setuptools-scm
 tomlkit==0.7.0            # via python-semantic-release
 tqdm==4.62.3              # via twine
 twine==3.7.1              # via ntu, python-semantic-release
