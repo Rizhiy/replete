@@ -9,6 +9,7 @@ readme = "README.md"
 requres-python = ">=3.8"
 dynamic = ["version", "description"]
 dependencies = [
+    "xxhash",
 ]
 
 [project.optional-dependencies]

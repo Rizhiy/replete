@@ -19,7 +19,7 @@ click==8.0.3              # via black, click-log, python-semantic-release
 click-log==0.3.2          # via python-semantic-release
 colorama==0.4.4           # via ntu, twine
 coverage==6.2       # via pytest-cov
-cryptography==36.0.0      # via secretstorage
+cryptography==36.0.1      # via secretstorage
 docutils==0.18.1          # via readme-renderer
 dotty-dict==1.3.0         # via python-semantic-release
 flake8==4.0.1             # via ntu
@@ -27,14 +27,14 @@ git-filter-repo==2.34.0   # via ntu
 gitdb==4.0.9              # via gitpython
 gitpython==3.1.24         # via ntu, python-semantic-release
 idna==3.3                 # via requests
-importlib-metadata==4.8.2  # via keyring, twine
+importlib-metadata==4.10.0  # via keyring, twine
 iniconfig==1.1.1          # via pytest
 invoke==1.6.0             # via python-semantic-release
 isort==5.4.2              # via ntu
 jeepney==0.7.1            # via keyring, secretstorage
 keyring==23.4.0           # via twine
 mccabe==0.6.1             # via flake8
-ntu~=0.22.0               # via nt-utils
+ntu~=0.23.1               # via nt-utils
 packaging==21.3           # via bleach, pytest, setuptools-scm
 pathspec==0.9.0           # via black
 pkginfo==1.8.2            # via twine
@@ -70,7 +70,8 @@ typed-ast==1.5.1          # via black
 typing-extensions==4.0.1  # via gitpython
 urllib3==1.26.7           # via requests
 webencodings==0.5.1       # via bleach
-wheel==0.37.0             # via ntu, python-semantic-release
+wheel==0.37.1             # via ntu, python-semantic-release
+xxhash==2.0.2             # via nt-utils
 zipp==3.6.0               # via importlib-metadata
 
 # The following packages are considered to be unsafe in a requirements file:
