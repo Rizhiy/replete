@@ -18,6 +18,7 @@ PRIMITIVE_TYPE_NAMES = frozenset(
         # Using `repr` on `datetime` is actually relatively fast (~1.5 microseconds);
         # the only possibly faster way is making a tuple out of its attributes (~1 microsecond into a string).
         # And pickling is very slow for `tzinfo` (~25 microseconds).
+        # `.timestamp()` is around ~5 microseconds with timezone.
         datetime.datetime,
     )
 )
