@@ -1,7 +1,30 @@
 from __future__ import annotations
 
 import asyncio
-from typing import Awaitable, Callable, Optional, TypeVar
+from typing import AsyncIterable, Awaitable, Callable, Optional, TypeVar
+
+T = TypeVar("T")
+
+
+async def alist(aiter: AsyncIterable[T]) -> list[T]:
+    """ Simple gatherer of an async iterable into a list """
+    result = []
+    async for item in aiter:
+        result.append(item)
+    return result
+
+
+async def achunked(aiterable: AsyncIterable[T], size: int) -> AsyncIterable[list[T]]:
+    """ Async iterable chunker """
+    chunk: list[T] = []
+    async for item in aiterable:
+        chunk.append(item)
+        if len(chunk) >= size:
+            yield chunk
+            chunk = []
+    if chunk:
+        yield chunk
+
 
 TLazyWrapValue = TypeVar("TLazyWrapValue")
 
