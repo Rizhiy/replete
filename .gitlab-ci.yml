@@ -1,6 +1,6 @@
 include:
-- project: utilities/ntu
-  file: ntu/release/gitlab-python-tests-basic.yml
+- project: utilities/nt-dev
+  file: nt_dev/release/gitlab-python-tests-basic.yml
 
 .common__tests:
   script:

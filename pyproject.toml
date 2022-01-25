@@ -17,7 +17,7 @@ tests = [
     "pytest",
     "pytest-cov",
     "pytest-asyncio",
-    "ntu"  #  "nt-tools",
+    "nt-dev",
 ]
 dev = [
     "pip-tools",
