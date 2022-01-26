@@ -3,11 +3,11 @@ from __future__ import annotations
 import datetime as dt
 from typing import Dict, Hashable, Iterable, List, Sequence, Tuple, TypeVar
 
-TGroupedKey = TypeVar("TGroupedKey", bound=Hashable)
-TGroupedVal = TypeVar("TGroupedVal")
+TKey = TypeVar("TKey", bound=Hashable)
+TVal = TypeVar("TVal")
 
 
-def grouped(items: Iterable[Tuple[TGroupedKey, TGroupedVal]]) -> Dict[TGroupedKey, List[TGroupedVal]]:
+def grouped(items: Iterable[Tuple[TKey, TVal]]) -> Dict[TKey, List[TVal]]:
     """
     Similar to `itertools.groupby`, but returns a dict, accepts unsorted
     iterable, and works on pairs instead of `key=...`.
@@ -55,3 +55,13 @@ def date_range(start: dt.date, stop: dt.date, step_days: int = 1) -> Iterable[dt
     total_days = (stop - start).days
     for step in range(0, total_days, step_days):
         yield start + dt.timedelta(days=step)
+
+
+def ensure_unique_keys(items: Iterable[tuple[TKey, TVal]]) -> dict[TKey, TVal]:
+    """ Replacement for dict comprehension that checks the keys uniqueness """
+    result = {}
+    for key, value in items:
+        if key in result:
+            raise ValueError(f"Key conflict: {key=!r}, first_value={result[key]!r}, second_value={value!r}")
+        result[key] = value
+    return result
