@@ -9,7 +9,6 @@ from typing import Any, Dict, Sequence
 
 import pytest
 import xxhash
-
 from nt_utils.consistent_hash import consistent_hash
 from nt_utils.utils import grouped
 

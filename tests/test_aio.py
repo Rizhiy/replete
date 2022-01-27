@@ -4,7 +4,6 @@ import asyncio
 import itertools
 
 import pytest
-
 from nt_utils.aio import LazyWrapAsync
 
 
