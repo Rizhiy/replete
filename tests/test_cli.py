@@ -8,6 +8,7 @@ from pathlib import Path
 from typing import Callable, Dict, List, NamedTuple, Sequence, Union
 
 import pytest
+
 from nt_utils.cli import autocli
 
 
