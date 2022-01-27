@@ -10,6 +10,7 @@ requres-python = ">=3.8"
 dynamic = ["version", "description"]
 dependencies = [
     "xxhash",
+    "docstring-parser",
 ]
 
 [project.optional-dependencies]
