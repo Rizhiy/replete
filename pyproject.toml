@@ -6,7 +6,7 @@ build-backend = "flit_core.buildapi"
 name = "nt_utils"
 authors = [{name = "Anton Vasilev", email = "a.vasilev@neurotrade.ru"}]
 readme = "README.md"
-requres-python = ">=3.8"
+requires-python = ">=3.8"
 dynamic = ["version", "description"]
 dependencies = [
     "xxhash",
