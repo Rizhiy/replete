@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import datetime as dt
-from typing import Dict, Hashable, Iterable, List, Sequence, Tuple, TypeVar
+from typing import Dict, Hashable, Iterable, List, Mapping, Sequence, Tuple, TypeVar
 
 TKey = TypeVar("TKey", bound=Hashable)
 TVal = TypeVar("TVal")
@@ -65,3 +65,21 @@ def ensure_unique_keys(items: Iterable[tuple[TKey, TVal]]) -> dict[TKey, TVal]:
             raise ValueError(f"Key conflict: {key=!r}, first_value={result[key]!r}, second_value={value!r}")
         result[key] = value
     return result
+
+
+def deep_update(target: dict, updates: Mapping) -> dict:
+    """
+    >>> target = dict(a=1, b=dict(c=2, d=dict(e="f", g="h"), i=dict(j="k")))
+    >>> updates = dict(i="i", j="j", b=dict(c=dict(c2="c2"), d=dict(e="f2")))
+    >>> deep_update(target, updates)
+    {'a': 1, 'b': {'c': {'c2': 'c2'}, 'd': {'e': 'f2', 'g': 'h'}, 'i': {'j': 'k'}}, 'i': 'i', 'j': 'j'}
+    """
+    target = target.copy()
+    for key, value in updates.items():
+        old_value = target.get(key)
+        if isinstance(old_value, dict):
+            new_value = deep_update(old_value, value)
+        else:
+            new_value = value
+        target[key] = new_value
+    return target
