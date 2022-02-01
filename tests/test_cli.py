@@ -9,7 +9,7 @@ from typing import Callable, Dict, List, NamedTuple, Sequence, Union
 
 import pytest
 
-from nt_utils.cli import autocli
+from nt_utils.cli import AutoCLI, autocli
 
 
 @autocli(fail_on_unknown_args=False, help_width=100, max_help_position=50)
@@ -176,3 +176,11 @@ def test_example_cli(test_case, monkeypatch) -> None:
     assert stdout.strip() == test_case.expected_stdout.strip()
     stderr = "".join(stderr_data)
     assert stderr.strip() == test_case.expected_stderr.strip()
+
+
+def test_wrapping():
+    assert isinstance(example_cli, AutoCLI)
+    func = example_cli.__wrapped__
+    assert func.__name__ == "example_cli"
+    for attr in ["__module__", "__name__", "__qualname__", "__doc__", "__annotations__"]:
+        assert getattr(example_cli, attr) == getattr(func, attr)
