@@ -5,7 +5,7 @@ import argparse
 import datetime as dt
 import functools
 import inspect
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from typing import Any, Callable, ClassVar, Dict, NamedTuple, Optional, Sequence, Tuple, Type, _GenericAlias
 
 import docstring_parser
@@ -120,12 +120,7 @@ class ParamExtras(NamedTuple):
 
 @dataclass
 class AutoCLIBase:
-    """
-    Base interface for an automatic function-to-CLI processing.
-
-    Note that this docstring has to be here because of a conflict between
-    dataclass and the `__wrapped__` property.
-    """
+    """ Base interface for an automatic function-to-CLI processing """
 
     func: Callable
     argv: Optional[Optional[Sequence[Any]]] = None
@@ -133,7 +128,7 @@ class AutoCLIBase:
     fail_on_unknown_args: bool = True  # safe default
     postprocess: Optional[Dict[str, Callable[[Any], Any]]] = None
     argparse_kwargs: Optional[Dict[str, Dict[str, Any]]] = None
-    annotations_ns: Optional[Dict[str, Any]] = None
+    annotations_ns: Optional[Dict[str, Any]] = field(default=None, repr=False)
     TYPE_CONVERTERS: ClassVar[Dict[Any, Callable[[str], Any]]] = {
         dt.date: dt.date.fromisoformat,
         dt.datetime: dt.datetime.fromisoformat,
@@ -157,10 +152,6 @@ class AutoCLIBase:
     def __call__(self, *args, **kwargs):
         raise NotImplementedError
 
-    @property
-    def __wrapped__(self) -> Callable:  # see `inspect.unwrap`
-        return self.func
-
     @classmethod
     def _make_param_infos(
         cls,
@@ -183,14 +174,14 @@ class AutoCLIBase:
 
 class _TunedHelpFormatter(argparse.ArgumentDefaultsHelpFormatter, argparse.RawDescriptionHelpFormatter):
 
-    _default_width: Optional[ClassVar[int]] = None
-    _max_help_position: Optional[ClassVar[int]] = None
+    _default_width: ClassVar[Optional[int]] = None
+    _default_max_help_position: ClassVar[Optional[int]] = None
 
     def __init__(self, *args, **kwargs):
         if self._default_width is not None:
             kwargs["width"] = kwargs.get("width", self._default_width)
-        if self._max_help_position is not None:
-            kwargs["max_help_position"] = kwargs.get("max_help_position", self._max_help_position)
+        if self._default_max_help_position is not None:
+            kwargs["max_help_position"] = kwargs.get("max_help_position", self._default_max_help_position)
         super().__init__(*args, **kwargs)
 
 
@@ -202,16 +193,15 @@ def _indent(value: str, indentation: str = "    ") -> str:
 class AutoCLI(AutoCLIBase):
     """
     `argparse.ArgumentParser`-based automatic-function-to-CLI.
-
-    Note that this docstring has to be here because of a conflict between
-    dataclass and the `__wrapped__` property.
     """
 
-    help_width: int = None
-    max_help_position: int = None
+    help_width: Optional[int] = None
+    max_help_position: Optional[int] = None
     formatter_class: Type[argparse.HelpFormatter] = _TunedHelpFormatter
     signature_override: inspect.Signature = None
     _description_indent: str = "  "
+    # mock default for `dataclass`, gets filled in `__post_init__` with an actual value.
+    __wrapped__: Callable = lambda: None
 
     @classmethod
     def _base_param_extras(cls, param_info: ParamInfo) -> ParamExtras:
@@ -225,6 +215,9 @@ class AutoCLI(AutoCLIBase):
         if extras.name_norm is None:
             extras = extras.replace(name_norm=cls._param_to_arg_name_norm(extras.param_info.name))
         return extras
+
+    def __post_init__(self):
+        functools.wraps(self.func)(self)
 
     def _full_params_extras(self, param_infos: Sequence[ParamInfo]) -> Dict[str, ParamExtras]:
         """
@@ -273,7 +266,7 @@ class AutoCLI(AutoCLIBase):
         formatter_cls = type(
             f"_Custom_{formatter_cls.__name__}",
             (formatter_cls,),
-            dict(_default_width=self.help_width, _max_help_position=self.max_help_position),
+            dict(_default_width=self.help_width, _default_max_help_position=self.max_help_position),
         )
         return argparse.ArgumentParser(formatter_class=formatter_cls, description=description)
 
@@ -362,16 +355,7 @@ def autocli(func=None, **config):
         if "annotations_ns" not in actual_config:
             caller = inspect.currentframe().f_back
             actual_config["annotations_ns"] = {**caller.f_globals, **caller.f_locals}
-        manager = AutoCLI(func, **actual_config)
-
-        @functools.wraps(func)
-        def autoargparse_wrapped(*args, **kwargs):
-            return manager(*args, **kwargs)
-
-        for attr in ("func",):
-            setattr(autoargparse_wrapped, attr, getattr(manager, attr))
-        autoargparse_wrapped.autocli = manager
-        return autoargparse_wrapped
+        return AutoCLI(func, **actual_config)
 
     if func is not None:
         return autocli_wrap(func)
