@@ -5,7 +5,7 @@ from typing import Callable, Iterable, TypeVar, Union, cast
 
 
 class Marker:
-    """ Special class for comparison markers (for use instead of `NoneType`) """
+    """Special class for comparison markers (for use instead of `NoneType`)"""
 
 
 TLeft = TypeVar("TLeft")

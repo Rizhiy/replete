@@ -9,20 +9,17 @@ readme = "README.md"
 requires-python = ">=3.8"
 dynamic = ["version", "description"]
 dependencies = [
-    "xxhash",
     "docstring-parser",
+    "xxhash",
 ]
 
 [project.optional-dependencies]
 tests = [
-    "pytest",
-    "pytest-cov",
+    "nt-dev>=0.29",
     "pytest-asyncio",
-    "nt-dev",
 ]
 dev = [
-    "pip-tools",
-    "wheel",
+    "nt-dev>=0.29",
 ]
 
 [tool.flit.sdist]

@@ -20,7 +20,7 @@ def example_cli(
     date_: dt.date = None,
     items: Dict[str, int] = None,
     no_type_longname="no type",
-) -> Path:
+) -> None:
     """
     Test function
 
@@ -30,7 +30,6 @@ def example_cli(
 
     :param output_dir: A dir
     :param res_name: Name for result
-    :return: result path
     """
     if date_ is None:
         date_ = dt.datetime.now(tz=dt.timezone.utc).date()

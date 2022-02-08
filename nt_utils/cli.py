@@ -1,12 +1,11 @@
 from __future__ import annotations
 
-import abc
 import argparse
 import datetime as dt
 import functools
 import inspect
 from dataclasses import dataclass, field
-from typing import Any, Callable, ClassVar, Dict, NamedTuple, Optional, Sequence, Tuple, Type, _GenericAlias
+from typing import Any, Callable, ClassVar, Dict, NamedTuple, Optional, Sequence, Tuple, Type
 
 import docstring_parser
 
@@ -36,7 +35,7 @@ def pairs_to_dict(
 def parse_bool(value: str) -> bool:
     if value in ("true", "True", "TRUE"):
         return True
-    if value == ("false", "False", "FALSE"):
+    if value in ("false", "False", "FALSE"):
         return False
     raise ValueError(f"Not a valid bool: {value!r}; must be `true` or `false`")
 
@@ -54,7 +53,7 @@ class ParamInfo(NamedTuple):
 
     @classmethod
     def from_arg_param(
-        cls, arg_param: inspect.Parameter, annotations_ns: dict = None, default: Any = None, **kwargs: Any,
+        cls, arg_param: inspect.Parameter, annotations_ns: dict = None, default: Any = None, **kwargs: Any
     ) -> ParamInfo:
         if default is not None:
             required = False
@@ -75,7 +74,7 @@ class ParamInfo(NamedTuple):
                 value_type = None
 
         value_contained_type = None
-        if isinstance(value_type, _GenericAlias):
+        if hasattr(value_type, "__origin__"):  # e.g. `typing._GenericAlias`
             type_name = value_type._name
             type_origin = value_type.__origin__
             type_args = value_type.__args__
@@ -120,7 +119,7 @@ class ParamExtras(NamedTuple):
 
 @dataclass
 class AutoCLIBase:
-    """ Base interface for an automatic function-to-CLI processing """
+    """Base interface for an automatic function-to-CLI processing"""
 
     func: Callable
     argv: Optional[Optional[Sequence[Any]]] = None
@@ -144,11 +143,10 @@ class AutoCLIBase:
             ),
         ),
         list: lambda param_info: ParamExtras(
-            arg_argparse_extra_kwargs=dict(nargs="*", type=param_info.contained_type or str),
+            arg_argparse_extra_kwargs=dict(nargs="*", type=param_info.contained_type or str)
         ),
     }
 
-    @abc.abstractmethod
     def __call__(self, *args, **kwargs):
         raise NotImplementedError
 
@@ -166,7 +164,7 @@ class AutoCLIBase:
         defaults = defaults or {}
         return [
             ParamInfo.from_arg_param(
-                arg_param, doc=params_docs.get(name), annotations_ns=annotations_ns, default=defaults.get(name),
+                arg_param, doc=params_docs.get(name), annotations_ns=annotations_ns, default=defaults.get(name)
             )
             for name, arg_param in signature.parameters.items()
         ]
@@ -207,7 +205,7 @@ class AutoCLI(AutoCLIBase):
     def _base_param_extras(cls, param_info: ParamInfo) -> ParamExtras:
         param_type = param_info.type
         extras_factory = cls.TYPE_AUTO_PARAMS.get(param_type) or ParamExtras
-        extras = extras_factory(param_info=param_info)
+        extras = extras_factory(param_info)
         if extras.param_info is None:  # For easier `TYPE_AUTO_PARAMS`.
             extras = extras.replace(param_info=param_info)
         if extras.type_converter is None and param_type in cls.TYPE_CONVERTERS:
@@ -240,7 +238,7 @@ class AutoCLI(AutoCLIBase):
         return result
 
     def _make_full_parser_and_params_extras(
-        self, defaults: dict,
+        self, defaults: dict
     ) -> Tuple[argparse.ArgumentParser, Dict[str, ParamExtras]]:
         docs = docstring_parser.parse(self.func.__doc__)
         params_docs = {param.arg_name: param.description for param in docs.params} if docs.params else {}
@@ -262,13 +260,13 @@ class AutoCLI(AutoCLIBase):
         return parser, params_extras
 
     def _make_base_parser(self, description: str) -> argparse.ArgumentParser:
-        formatter_cls = self.formatter_class
-        formatter_cls = type(
-            f"_Custom_{formatter_cls.__name__}",
-            (formatter_cls,),
+        formatter_class = self.formatter_class
+        formatter_class = type(
+            f"_Custom_{formatter_class.__name__}",
+            (formatter_class,),
             dict(_default_width=self.help_width, _default_max_help_position=self.max_help_position),
         )
-        return argparse.ArgumentParser(formatter_class=formatter_cls, description=description)
+        return argparse.ArgumentParser(formatter_class=formatter_class, description=description)  # type: ignore
 
     @staticmethod
     def _param_to_arg_name_norm(name: str) -> str:
@@ -283,7 +281,7 @@ class AutoCLI(AutoCLIBase):
         return "--" + name_norm.replace("_", "-")
 
     @classmethod
-    def _add_argument(cls, parser, name, param, arg_extra_kwargs: Optional[Dict[str, Any]] = None) -> str:
+    def _add_argument(cls, parser, name, param, arg_extra_kwargs: Optional[Dict[str, Any]] = None) -> None:
         if param.required:
             arg_name = cls._pos_param_to_arg_name(name)
         else:
@@ -310,10 +308,10 @@ class AutoCLI(AutoCLIBase):
         signature = inspect.signature(self.func)
 
         var_arg = next(
-            (param for param in signature.parameters.values() if param.kind is inspect.Parameter.VAR_POSITIONAL), None,
+            (param for param in signature.parameters.values() if param.kind is inspect.Parameter.VAR_POSITIONAL), None
         )
         var_kwarg = next(
-            (param for param in signature.parameters.values() if param.kind is inspect.Parameter.VAR_KEYWORD), None,
+            (param for param in signature.parameters.values() if param.kind is inspect.Parameter.VAR_KEYWORD), None
         )
         if var_arg is not None:
             raise Exception("Not currently supported: `**args` in function")
@@ -337,11 +335,11 @@ class AutoCLI(AutoCLIBase):
         if unknown_args and self.fail_on_unknown_args:
             raise Exception("Unrecognized arguments", dict(unknown_args=unknown_args))
         parsed_args = params._get_args()  # generally, an empty list.
-        parsed_kwargs = params._get_kwargs()
+        parsed_kwargs_base = params._get_kwargs()
         arg_name_to_param_name = {
             extras.name_norm or param_name: param_name for param_name, extras in params_extras.items()
         }
-        parsed_kwargs = {arg_name_to_param_name[key]: val for key, val in parsed_kwargs}
+        parsed_kwargs = {arg_name_to_param_name[key]: val for key, val in parsed_kwargs_base}
         parsed_kwargs = self._postprocess_values(parsed_kwargs, params_extras=params_extras)
 
         full_args = [*var_args, *parsed_args]
