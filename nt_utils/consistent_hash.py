@@ -3,7 +3,7 @@ from __future__ import annotations
 import collections.abc
 import datetime
 import pickle
-from typing import Any, Dict, Sequence
+from typing import Any, Dict, Sequence, cast
 
 import xxhash
 
@@ -66,4 +66,4 @@ def consistent_hash_raw(
 
 
 def consistent_hash(*args, **kwargs) -> int:
-    return consistent_hash_raw(args, kwargs).intdigest()
+    return cast(int, consistent_hash_raw(args, kwargs).intdigest())

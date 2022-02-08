@@ -1,13 +1,13 @@
 from __future__ import annotations
 
 import asyncio
-from typing import AsyncIterable, Awaitable, Callable, Optional, TypeVar
+from typing import AsyncIterable, Awaitable, Callable, TypeVar
 
 T = TypeVar("T")
 
 
 async def alist(aiter: AsyncIterable[T]) -> list[T]:
-    """ Simple gatherer of an async iterable into a list """
+    """Simple gatherer of an async iterable into a list"""
     result = []
     async for item in aiter:
         result.append(item)
@@ -15,7 +15,7 @@ async def alist(aiter: AsyncIterable[T]) -> list[T]:
 
 
 async def achunked(aiterable: AsyncIterable[T], size: int) -> AsyncIterable[list[T]]:
-    """ Async iterable chunker """
+    """Async iterable chunker"""
     chunk: list[T] = []
     async for item in aiterable:
         chunk.append(item)
@@ -33,7 +33,7 @@ class LazyWrapAsync:
     def __init__(self, generate: Callable[[], Awaitable[TLazyWrapValue]]) -> None:
         self._generate = generate
         self._generate_done = False
-        self._value: Optional[TLazyWrapValue] = None
+        self._value: TLazyWrapValue
         self._write_lock = asyncio.Lock()
 
     async def __call__(self) -> TLazyWrapValue:

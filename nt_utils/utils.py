@@ -58,7 +58,7 @@ def date_range(start: dt.date, stop: dt.date, step_days: int = 1) -> Iterable[dt
 
 
 def ensure_unique_keys(items: Iterable[tuple[TKey, TVal]]) -> dict[TKey, TVal]:
-    """ Replacement for dict comprehension that checks the keys uniqueness """
+    """Replacement for dict comprehension that checks the keys uniqueness"""
     result = {}
     for key, value in items:
         if key in result:

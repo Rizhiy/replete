@@ -12,13 +12,14 @@ attrs==21.4.0             # via black, pytest
 autoflake==1.4            # via nt-dev
 black==19.10b0            # via nt-dev
 bleach==4.1.0             # via readme-renderer
+build==0.7.0              # via nt-dev
 certifi==2021.10.8        # via requests
 cffi==1.15.0              # via cryptography
 charset-normalizer==2.0.10  # via requests
 click==8.0.3              # via black, click-log, pip-tools, python-semantic-release
 click-log==0.3.2          # via python-semantic-release
 colorama==0.4.4           # via nt-dev, twine
-coverage==6.2       # via pytest-cov
+coverage==6.2       # via nt-dev, pytest-cov
 cryptography==36.0.1      # via secretstorage
 docstring-parser==0.13    # via nt-utils
 docutils==0.18.1          # via readme-renderer
@@ -37,10 +38,10 @@ keyring==23.5.0           # via twine
 mccabe==0.6.1             # via flake8
 mypy==0.931               # via nt-dev
 mypy-extensions==0.4.3    # via mypy
-nt-dev~=0.26.0            # via nt-utils
-packaging==21.3           # via bleach, pytest, setuptools-scm
+nt-dev~=0.29.0            # via nt-utils
+packaging==21.3           # via bleach, build, pytest, setuptools-scm
 pathspec==0.9.0           # via black
-pep517==0.12.0            # via pip-tools
+pep517==0.12.0            # via build, pip-tools
 pip-tools==6.4.0          # via nt-dev
 pkginfo==1.8.2            # via twine
 pluggy==1.0.0             # via pytest
@@ -51,9 +52,9 @@ pycparser==2.21           # via cffi
 pyflakes==2.4.0           # via autoflake, flake8
 pygments==2.11.2          # via readme-renderer
 pyparsing==3.0.7          # via packaging
-pytest==6.2.5             # via nt-dev, nt-utils, pytest-asyncio, pytest-cov
+pytest==6.2.5             # via nt-dev, pytest-asyncio, pytest-cov
 pytest-asyncio==0.17.2    # via nt-utils
-pytest-cov==3.0.0         # via nt-dev, nt-utils
+pytest-cov==3.0.0         # via nt-dev
 python-gitlab==2.10.1     # via python-semantic-release
 python-semantic-release==7.24.0  # via nt-dev
 pyyaml==6.0               # via nt-dev
@@ -68,12 +69,16 @@ setuptools-scm==6.4.2     # via dotty-dict
 six==1.16.0               # via bleach
 smmap==5.0.0              # via gitdb
 toml==0.10.2              # via black, nt-dev, pytest
-tomli==2.0.0              # via coverage, mypy, pep517, setuptools-scm
+tomli==2.0.0              # via build, coverage, mypy, pep517, setuptools-scm
 tomlkit==0.7.0            # via python-semantic-release
 tqdm==4.62.3              # via twine
 twine==3.7.1              # via nt-dev, python-semantic-release
 typed-ast==1.5.2          # via black
 types-pyyaml==6.0.3       # via nt-dev
+types-requests==2.27.7    # via nt-dev
+types-setuptools==57.4.8  # via nt-dev
+types-toml==0.10.3        # via nt-dev
+types-urllib3==1.26.8     # via types-requests
 typing-extensions==4.0.1  # via mypy
 urllib3==1.26.8           # via requests
 webencodings==0.5.1       # via bleach

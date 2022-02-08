@@ -5,7 +5,7 @@ import json
 import operator
 from collections.abc import Mapping
 from time import monotonic
-from typing import Any, Dict, Sequence
+from typing import Any, Dict, Sequence, Union
 
 import pytest
 import xxhash
@@ -34,9 +34,9 @@ def test_consistent_hash(a, b, expected):
 
 
 def consistent_hash_ref(*args, **kwargs) -> int:
-    """ Reference (old) implementation of `consistent_hash` """
+    """Reference (old) implementation of `consistent_hash`"""
     params = [*args, *sorted(kwargs.items(), key=operator.itemgetter(0))]
-    hashes = []
+    hashes: list[Union[int, str]] = []
     for param in params:
         if isinstance(param, Mapping):
             hashes.append(consistent_hash(**{str(key): value for key, value in param.items()}))
@@ -73,7 +73,7 @@ def consistent_hash_ref2(*args, **kwargs) -> int:
 
 
 def test_consistent_hash_ref_perf():
-    def time_stuff(consistent_hash_func, count=1000, best_of=3) -> None:
+    def time_stuff(consistent_hash_func, count=1000, best_of=3) -> float:
         timings = []
         for _ in range(best_of):
             t01 = monotonic()
@@ -102,8 +102,11 @@ def _sorted_any(values):
 
 
 def test_consistent_hash_ref_match():
-    values = [CONSISTENT_HASH_TEST_CASES] + [
-        val for val1, val2, _ in CONSISTENT_HASH_TEST_CASES for val in (val1, val2)
+    """Compare implementations on arbitrary supported values"""
+    values = [
+        *[val for val1, val2, _ in CONSISTENT_HASH_TEST_CASES for val in (val1, val2)],
+        *CONSISTENT_HASH_TEST_CASES,
+        CONSISTENT_HASH_TEST_CASES,
     ]
     groups = grouped((consistent_hash(val), val) for val in values)
     groups_ref = grouped((consistent_hash_ref(val), val) for val in values)
