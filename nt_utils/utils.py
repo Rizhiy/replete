@@ -1,11 +1,14 @@
 from __future__ import annotations
 
 import datetime as dt
-from collections.abc import Hashable, Iterable, Mapping, Sequence
-from typing import TypeVar
+from collections.abc import Callable, Hashable, Iterable, Mapping, Sequence
+from typing import TypeVar, cast
 
 TKey = TypeVar("TKey", bound=Hashable)
 TVal = TypeVar("TVal")
+# For `sort`-like `key=...` argument:
+TSourceVal = TypeVar("TSourceVal")
+TSortKey = Callable[[TSourceVal], TVal]
 
 
 def grouped(items: Iterable[tuple[TKey, TVal]]) -> dict[TKey, list[TVal]]:
@@ -84,3 +87,57 @@ def deep_update(target: dict, updates: Mapping) -> dict:
             new_value = value
         target[key] = new_value
     return target
+
+
+def bisect_left(
+    data: Sequence[TSourceVal],
+    value: TVal,
+    lo: int = 0,
+    hi: int = None,
+    key: TSortKey = cast(TSortKey, lambda val: val),
+):
+    """
+    `bisect.bisect_left` with the additional `key` support.
+
+    >>> data = [dict(val=val) for val in [2, 4, 8, 8, 10, 12]]
+    >>> values = list(range(14))
+    >>> [bisect_left(data, val, key=lambda item: item["val"]) for val in values]
+    [0, 0, 0, 1, 1, 2, 2, 2, 2, 4, 4, 5, 5, 6]
+    """
+    assert lo >= 0
+    left = lo
+    right = len(data) if hi is None else hi
+    while left < right:
+        middle = (left + right) // 2
+        if key(data[middle]) < value:
+            left = middle + 1
+        else:
+            right = middle
+    return left
+
+
+def bisect_right(
+    data: Sequence[TSourceVal],
+    value: TVal,
+    lo: int = 0,
+    hi: int = None,
+    key: TSortKey = cast(TSortKey, lambda val: val),
+):
+    """
+    `bisect.bisect_right` with the additional `key` support.
+
+    >>> data = [dict(val=val) for val in [2, 4, 8, 8, 10, 12]]
+    >>> values = list(range(14))
+    >>> [bisect_right(data, val, key=lambda item: item["val"]) for val in values]
+    [0, 0, 1, 1, 2, 2, 2, 2, 4, 4, 5, 5, 6, 6]
+    """
+    assert lo >= 0
+    left = lo
+    right = len(data) if hi is None else hi
+    while left < right:
+        middle = (left + right) // 2
+        if value < key(data[middle]):
+            right = middle
+        else:
+            left = middle + 1
+    return left
