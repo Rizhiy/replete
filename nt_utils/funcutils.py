@@ -1,7 +1,8 @@
 from __future__ import annotations
 
 import operator
-from typing import Callable, Iterable, TypeVar, Union, cast
+from collections.abc import Callable, Iterable
+from typing import TypeVar, Union, cast
 
 
 class Marker:

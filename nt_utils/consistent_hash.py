@@ -3,7 +3,8 @@ from __future__ import annotations
 import collections.abc
 import datetime
 import pickle
-from typing import Any, Dict, Sequence, cast
+from collections.abc import Sequence
+from typing import Any, cast
 
 import xxhash
 
@@ -26,7 +27,7 @@ PRIMITIVE_TYPE_NAMES = frozenset(
 
 def consistent_hash_raw(
     args: Sequence[Any] = (),
-    kwargs: Dict[str, Any] = None,
+    kwargs: dict[str, Any] = None,
     primitive_type_names=PRIMITIVE_TYPE_NAMES,
     type_name_dependence=False,
     try_pickle=True,

@@ -4,8 +4,9 @@ import argparse
 import datetime as dt
 import functools
 import inspect
+from collections.abc import Callable, Sequence
 from dataclasses import dataclass, field
-from typing import Any, Callable, ClassVar, Dict, NamedTuple, Optional, Sequence, Tuple, Type
+from typing import Any, ClassVar, NamedTuple, Optional, Type
 
 import docstring_parser
 
@@ -75,9 +76,9 @@ class ParamInfo(NamedTuple):
 
         value_contained_type = None
         if hasattr(value_type, "__origin__"):  # e.g. `typing._GenericAlias`
-            type_name = value_type._name
             type_origin = value_type.__origin__
             type_args = value_type.__args__
+            type_name = getattr(value_type, "_name", None) or type_origin.__name__
             if type_origin is dict:
                 value_type = dict
                 if isinstance(type_args, tuple) and len(type_args) == 2:
@@ -108,7 +109,7 @@ class ParamInfo(NamedTuple):
 class ParamExtras(NamedTuple):
     param_info: ParamInfo = None
     name_norm: str = None
-    arg_argparse_extra_kwargs: Dict[str, Any] = None
+    arg_argparse_extra_kwargs: dict[str, Any] = None
     arg_postprocess: Callable[[Any], Any] = None
     type_converter: Callable[[Any], Any] = None
     type_postprocessor: Callable[[Any], Any] = None
@@ -125,14 +126,14 @@ class AutoCLIBase:
     argv: Optional[Optional[Sequence[Any]]] = None
 
     fail_on_unknown_args: bool = True  # safe default
-    postprocess: Optional[Dict[str, Callable[[Any], Any]]] = None
-    argparse_kwargs: Optional[Dict[str, Dict[str, Any]]] = None
-    annotations_ns: Optional[Dict[str, Any]] = field(default=None, repr=False)
-    TYPE_CONVERTERS: ClassVar[Dict[Any, Callable[[str], Any]]] = {
+    postprocess: Optional[dict[str, Callable[[Any], Any]]] = None
+    argparse_kwargs: Optional[dict[str, dict[str, Any]]] = None
+    annotations_ns: Optional[dict[str, Any]] = field(default=None, repr=False)
+    TYPE_CONVERTERS: ClassVar[dict[Any, Callable[[str], Any]]] = {
         dt.date: dt.date.fromisoformat,
         dt.datetime: dt.datetime.fromisoformat,
     }
-    TYPE_AUTO_PARAMS: ClassVar[Dict[Any, Callable[[ParamInfo], ParamExtras]]] = {
+    TYPE_AUTO_PARAMS: ClassVar[dict[Any, Callable[[ParamInfo], ParamExtras]]] = {
         # TODO: actually make the boolean arguments into `--flag/--no-flag`.
         bool: lambda param_info: ParamExtras(arg_argparse_extra_kwargs=dict(type=parse_bool)),
         dict: lambda param_info: ParamExtras(
@@ -154,9 +155,9 @@ class AutoCLIBase:
     def _make_param_infos(
         cls,
         func,
-        params_docs: Optional[Dict[str, Any]] = None,
-        annotations_ns: Optional[Dict[str, Any]] = None,
-        defaults: Optional[Dict[str, Any]] = None,
+        params_docs: Optional[dict[str, Any]] = None,
+        annotations_ns: Optional[dict[str, Any]] = None,
+        defaults: Optional[dict[str, Any]] = None,
         signature: inspect.Signature = None,
     ) -> Sequence[ParamInfo]:
         signature = signature or inspect.signature(func, follow_wrapped=False)
@@ -217,7 +218,7 @@ class AutoCLI(AutoCLIBase):
     def __post_init__(self):
         functools.wraps(self.func)(self)
 
-    def _full_params_extras(self, param_infos: Sequence[ParamInfo]) -> Dict[str, ParamExtras]:
+    def _full_params_extras(self, param_infos: Sequence[ParamInfo]) -> dict[str, ParamExtras]:
         """
         All the class and instance overrides combined into one structure.
 
@@ -239,7 +240,7 @@ class AutoCLI(AutoCLIBase):
 
     def _make_full_parser_and_params_extras(
         self, defaults: dict
-    ) -> Tuple[argparse.ArgumentParser, Dict[str, ParamExtras]]:
+    ) -> tuple[argparse.ArgumentParser, dict[str, ParamExtras]]:
         docs = docstring_parser.parse(self.func.__doc__)
         params_docs = {param.arg_name: param.description for param in docs.params} if docs.params else {}
         description = "\n\n".join(item for item in (docs.short_description, docs.long_description) if item)
@@ -281,7 +282,7 @@ class AutoCLI(AutoCLIBase):
         return "--" + name_norm.replace("_", "-")
 
     @classmethod
-    def _add_argument(cls, parser, name, param, arg_extra_kwargs: Optional[Dict[str, Any]] = None) -> None:
+    def _add_argument(cls, parser, name, param, arg_extra_kwargs: Optional[dict[str, Any]] = None) -> None:
         if param.required:
             arg_name = cls._pos_param_to_arg_name(name)
         else:
@@ -302,7 +303,7 @@ class AutoCLI(AutoCLIBase):
         arg_kwargs.update(arg_extra_kwargs)
         parser.add_argument(arg_name, *arg_extra_args, **arg_kwargs)
 
-    def _make_overridden_defaults(self, args: tuple, kwargs: Dict[str, Any]) -> Tuple[Dict[str, Any], tuple]:
+    def _make_overridden_defaults(self, args: tuple, kwargs: dict[str, Any]) -> tuple[dict[str, Any], tuple]:
         if not args:
             return kwargs or {}, ()
         signature = inspect.signature(self.func)
@@ -320,7 +321,7 @@ class AutoCLI(AutoCLIBase):
 
         return signature.bind_partial(*args, **kwargs).arguments, ()
 
-    def _postprocess_values(self, parsed_kwargs: dict, params_extras: Dict[str, ParamExtras]) -> dict:
+    def _postprocess_values(self, parsed_kwargs: dict, params_extras: dict[str, ParamExtras]) -> dict:
         parsed_kwargs = parsed_kwargs.copy()
         for name, param_extras in params_extras.items():
             if param_extras.arg_postprocess and name in parsed_kwargs:

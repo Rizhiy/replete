@@ -1,13 +1,14 @@
 from __future__ import annotations
 
 import datetime as dt
-from typing import Dict, Hashable, Iterable, List, Mapping, Sequence, Tuple, TypeVar
+from collections.abc import Hashable, Iterable, Mapping, Sequence
+from typing import TypeVar
 
 TKey = TypeVar("TKey", bound=Hashable)
 TVal = TypeVar("TVal")
 
 
-def grouped(items: Iterable[Tuple[TKey, TVal]]) -> Dict[TKey, List[TVal]]:
+def grouped(items: Iterable[tuple[TKey, TVal]]) -> dict[TKey, list[TVal]]:
     """
     Similar to `itertools.groupby`, but returns a dict, accepts unsorted
     iterable, and works on pairs instead of `key=...`.

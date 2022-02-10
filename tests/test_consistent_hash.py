@@ -3,9 +3,9 @@ from __future__ import annotations
 import hashlib
 import json
 import operator
-from collections.abc import Mapping
+from collections.abc import Mapping, Sequence
 from time import monotonic
-from typing import Any, Dict, Sequence, Union
+from typing import Any, Union
 
 import pytest
 import xxhash
@@ -50,7 +50,7 @@ def consistent_hash_ref(*args, **kwargs) -> int:
     return int(hasher.hexdigest(), 16)
 
 
-def consistent_hash_ref2_raw(args: Sequence[Any] = (), kwargs: Dict[str, Any] = None) -> xxhash.xxh128:
+def consistent_hash_ref2_raw(args: Sequence[Any] = (), kwargs: dict[str, Any] = None) -> xxhash.xxh128:
     params = [*args, *sorted(kwargs.items())] if kwargs else args
     hasher = xxhash.xxh128()
     for param in params:
