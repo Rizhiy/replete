@@ -4,7 +4,7 @@ import hashlib
 import json
 import operator
 from collections.abc import Mapping, Sequence
-from time import monotonic
+from time import process_time
 from typing import Any, Union
 
 import pytest
@@ -76,13 +76,13 @@ def test_consistent_hash_ref_perf():
     def time_stuff(consistent_hash_func, count=1000, best_of=3) -> float:
         timings = []
         for _ in range(best_of):
-            t01 = monotonic()
+            t01 = process_time()
             for _ in range(count):
                 for val1, val2, _ in CONSISTENT_HASH_TEST_CASES:
                     consistent_hash_func(val1)
                     consistent_hash_func(val2)
                 consistent_hash_func(CONSISTENT_HASH_TEST_CASES)
-            t02 = monotonic()
+            t02 = process_time()
             timings.append(t02 - t01)
         return min(timings)
 
@@ -94,7 +94,7 @@ def test_consistent_hash_ref_perf():
     print(dict(actual_time=actual_time, ref_time=ref_time, ref2_time=ref2_time))
     assert actual_time < ref_time
     # No significant difference expected for the current simple examples.
-    assert actual_time < ref2_time * 1.3
+    assert actual_time < ref2_time * 1.2
 
 
 def _sorted_any(values):
