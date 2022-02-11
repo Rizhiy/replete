@@ -73,28 +73,22 @@ def consistent_hash_ref2(*args, **kwargs) -> int:
 
 
 def test_consistent_hash_ref_perf():
-    def time_stuff(consistent_hash_func, count=1000, best_of=3) -> float:
-        timings = []
-        for _ in range(best_of):
-            t01 = process_time()
-            for _ in range(count):
-                for val1, val2, _ in CONSISTENT_HASH_TEST_CASES:
-                    consistent_hash_func(val1)
-                    consistent_hash_func(val2)
-                consistent_hash_func(CONSISTENT_HASH_TEST_CASES)
-            t02 = process_time()
-            timings.append(t02 - t01)
-        return min(timings)
+    def time_stuff(consistent_hash_func, count=1000) -> float:
+        t01 = process_time()
+        for _ in range(count):
+            for val1, val2, _ in CONSISTENT_HASH_TEST_CASES:
+                consistent_hash_func(val1)
+                consistent_hash_func(val2)
+            consistent_hash_func(CONSISTENT_HASH_TEST_CASES)
+        return process_time() - t01
 
-    for _ in range(2):  # hack to avoid possible cold-start effects
-        actual_time = time_stuff(consistent_hash)
-        ref2_time = time_stuff(consistent_hash_ref2)
-        ref_time = time_stuff(consistent_hash_ref)
+    funcs = [consistent_hash, consistent_hash_ref2, consistent_hash_ref]
+    all_timings = [{func: time_stuff(func) for func in funcs} for _ in range(5)]
+    min_timings = {key: min(timing[key] for timing in all_timings) for key in all_timings[0]}
 
-    print(dict(actual_time=actual_time, ref_time=ref_time, ref2_time=ref2_time))
-    assert actual_time < ref_time
+    assert min_timings[consistent_hash] < min_timings[consistent_hash_ref]
     # No significant difference expected for the current simple examples.
-    assert actual_time < ref2_time * 1.2
+    assert min_timings[consistent_hash] < min_timings[consistent_hash_ref2] * 1.3
 
 
 def _sorted_any(values):
