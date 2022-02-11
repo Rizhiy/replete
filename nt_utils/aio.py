@@ -1,7 +1,8 @@
 from __future__ import annotations
 
 import asyncio
-from typing import AsyncIterable, Awaitable, Callable, TypeVar
+from collections.abc import AsyncIterable, Awaitable, Callable
+from typing import TypeVar
 
 T = TypeVar("T")
 

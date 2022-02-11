@@ -3,9 +3,10 @@ from __future__ import annotations
 import contextlib
 import datetime as dt
 import sys
+from collections.abc import Callable, Sequence
 from functools import partial
 from pathlib import Path
-from typing import Callable, Dict, List, NamedTuple, Sequence, Union
+from typing import NamedTuple, Union
 
 import pytest
 
@@ -18,7 +19,7 @@ def example_cli(
     no_help: str,
     res_name: str = "test",
     date_: dt.date = None,
-    items: Dict[str, int] = None,
+    items: dict[str, int] = None,
     no_type_longname="no type",
 ) -> None:
     """
@@ -145,7 +146,7 @@ CLI_TEST_CASES = [
 
 @contextlib.contextmanager
 def out_capture(attr: str = "stdout"):
-    out_data: List[str] = []
+    out_data: list[str] = []
 
     def out_write(data: Union[str, bytes]) -> None:
         if isinstance(data, bytes):
