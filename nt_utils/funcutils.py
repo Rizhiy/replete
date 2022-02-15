@@ -51,7 +51,7 @@ def join_ffill(
     right_item: Union[TRight, TRightDefault] = cast(TRightDefault, default)
     next_right_item: Union[TRight, Marker] = next(right_iter, right_done_marker)
     for left_item in left_lst:
-        if next_right_item is not right_done_marker and condition(left_item, cast(TRight, next_right_item)):
+        while next_right_item is not right_done_marker and condition(left_item, cast(TRight, next_right_item)):
             right_item = cast(TRight, next_right_item)
             next_right_item = next(right_iter, right_done_marker)
         yield left_item, right_item
