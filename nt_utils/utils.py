@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import datetime as dt
 from collections.abc import Callable, Hashable, Iterable, Mapping, Sequence
-from typing import TypeVar, cast
+from typing import Optional, TypeVar, cast
 
 TKey = TypeVar("TKey", bound=Hashable)
 TVal = TypeVar("TVal")
@@ -19,7 +19,7 @@ def grouped(items: Iterable[tuple[TKey, TVal]]) -> dict[TKey, list[TVal]]:
     >>> grouped([(1, 2), (3, 4), (1, 5)])
     {1: [2, 5], 3: [4]}
     """
-    result = {}
+    result: dict[TKey, list[TVal]] = {}
     for key, value in items:
         lst = result.get(key)
         if lst is None:
@@ -61,9 +61,36 @@ def date_range(start: dt.date, stop: dt.date, step_days: int = 1) -> Iterable[dt
         yield start + dt.timedelta(days=step)
 
 
+def datetime_range(start: dt.datetime, stop: Optional[dt.datetime], step: dt.timedelta) -> Iterable[dt.datetime]:
+    """
+    :param stop: can be `None` to make an infinite generator.
+    :param precise: use (slower) multiplication to avoid rounding errors.
+
+    >>> def _dts_s(dts):
+    ...     return [val.isoformat() for val in dts]
+    ...
+    >>> dt1 = dt.datetime(2022, 2, 2)
+    >>> dt2 = dt.datetime(2022, 2, 4)
+    >>> _dts_s(datetime_range(dt1, dt2, dt.timedelta(days=1)))
+    ['2022-02-02T00:00:00', '2022-02-03T00:00:00']
+    >>> _dts_s(datetime_range(dt1, dt2, dt.timedelta(hours=17)))
+    ['2022-02-02T00:00:00', '2022-02-02T17:00:00', '2022-02-03T10:00:00']
+    >>> _dts_s(datetime_range(dt1, dt2, dt.timedelta(seconds=11.11111111111)))[-1]
+    '2022-02-03T23:59:59.998272'
+    """
+    assert step, "must be non-zero"
+    forward = step > dt.timedelta()
+    current = start
+    while True:
+        if stop is not None and ((current >= stop) if forward else (current <= stop)):
+            return
+        yield current
+        current += step
+
+
 def ensure_unique_keys(items: Iterable[tuple[TKey, TVal]]) -> dict[TKey, TVal]:
     """Replacement for dict comprehension that checks the keys uniqueness"""
-    result = {}
+    result: dict[TKey, TVal] = {}
     for key, value in items:
         if key in result:
             raise ValueError(f"Key conflict: {key=!r}, first_value={result[key]!r}, second_value={value!r}")
