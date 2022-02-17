@@ -1,6 +1,5 @@
-
-[![pipeline status](http://192.168.135.11/utilities/nt-utils/badges/master/pipeline.svg)](http://192.168.135.11/utilities/nt-utils/commits/master)
-[![coverage report](http://192.168.135.11/utilities/nt-utils/badges/master/coverage.svg)](http://192.168.135.11/utilities/nt-utils/commits/master)
+[![pipeline status](http://192.168.135.12/utilities/nt-utils/badges/master/pipeline.svg)](http://192.168.135.12/utilities/nt-utils/commits/master)
+[![coverage report](http://192.168.135.12/utilities/nt-utils/badges/master/coverage.svg)](http://192.168.135.12/utilities/nt-utils/commits/master)
 [![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
 
 
