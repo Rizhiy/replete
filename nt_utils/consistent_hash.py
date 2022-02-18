@@ -4,7 +4,7 @@ import collections.abc
 import datetime
 import pickle
 from collections.abc import Sequence
-from typing import Any, cast
+from typing import Any, Optional
 
 import xxhash
 
@@ -27,10 +27,10 @@ PRIMITIVE_TYPE_NAMES = frozenset(
 
 def consistent_hash_raw(
     args: Sequence[Any] = (),
-    kwargs: dict[str, Any] = None,
-    primitive_type_names=PRIMITIVE_TYPE_NAMES,
-    type_name_dependence=False,
-    try_pickle=True,
+    kwargs: Optional[dict[str, Any]] = None,
+    primitive_type_names: frozenset[str] = PRIMITIVE_TYPE_NAMES,
+    type_name_dependence: bool = False,
+    try_pickle: bool = True,
 ) -> xxhash.xxh128:
     params = [*args, *sorted(kwargs.items())] if kwargs else args
     hasher = xxhash.xxh128()
@@ -66,5 +66,5 @@ def consistent_hash_raw(
     return hasher
 
 
-def consistent_hash(*args, **kwargs) -> int:
-    return cast(int, consistent_hash_raw(args, kwargs).intdigest())
+def consistent_hash(*args: Any, **kwargs: Any) -> int:
+    return consistent_hash_raw(args, kwargs).intdigest()

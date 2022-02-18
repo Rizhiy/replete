@@ -3,9 +3,9 @@ from __future__ import annotations
 import hashlib
 import json
 import operator
-from collections.abc import Mapping, Sequence
+from collections.abc import Iterable, Mapping, Sequence
 from time import process_time
-from typing import Any, Union
+from typing import Any, Callable, Optional, Union
 
 import pytest
 import xxhash
@@ -13,7 +13,7 @@ import xxhash
 from nt_utils.consistent_hash import consistent_hash
 from nt_utils.utils import grouped
 
-CONSISTENT_HASH_TEST_CASES = [
+CONSISTENT_HASH_TEST_CASES: list[tuple[Any, Any, bool]] = [
     # value, value, equal
     ({}, {}, True),
     ({"foo": 1, "bar": 2}, {"bar": 2, "foo": 1}, True),
@@ -28,12 +28,12 @@ CONSISTENT_HASH_TEST_CASES = [
 
 
 @pytest.mark.parametrize("a,b,expected", CONSISTENT_HASH_TEST_CASES)
-def test_consistent_hash(a, b, expected):
+def test_consistent_hash(a: Any, b: Any, expected: bool) -> None:
     result = consistent_hash(a) == consistent_hash(b)
     assert result == expected
 
 
-def consistent_hash_ref(*args, **kwargs) -> int:
+def consistent_hash_ref(*args: Any, **kwargs: Any) -> int:
     """Reference (old) implementation of `consistent_hash`"""
     params = [*args, *sorted(kwargs.items(), key=operator.itemgetter(0))]
     hashes: list[Union[int, str]] = []
@@ -50,7 +50,7 @@ def consistent_hash_ref(*args, **kwargs) -> int:
     return int(hasher.hexdigest(), 16)
 
 
-def consistent_hash_ref2_raw(args: Sequence[Any] = (), kwargs: dict[str, Any] = None) -> xxhash.xxh128:
+def consistent_hash_ref2_raw(args: Sequence[Any] = (), kwargs: Optional[dict[str, Any]] = None) -> xxhash.xxh128:
     params = [*args, *sorted(kwargs.items())] if kwargs else args
     hasher = xxhash.xxh128()
     for param in params:
@@ -68,12 +68,12 @@ def consistent_hash_ref2_raw(args: Sequence[Any] = (), kwargs: dict[str, Any] = 
     return hasher
 
 
-def consistent_hash_ref2(*args, **kwargs) -> int:
+def consistent_hash_ref2(*args: Any, **kwargs: Any) -> int:
     return consistent_hash_ref2_raw(args, kwargs).intdigest()
 
 
-def test_consistent_hash_ref_perf():
-    def time_stuff(consistent_hash_func, count=1000) -> float:
+def test_consistent_hash_ref_perf() -> None:
+    def time_stuff(consistent_hash_func: Callable[..., Any], count: int = 1000) -> float:
         t01 = process_time()
         for _ in range(count):
             for val1, val2, _ in CONSISTENT_HASH_TEST_CASES:
@@ -91,11 +91,11 @@ def test_consistent_hash_ref_perf():
     assert min_timings[consistent_hash] < min_timings[consistent_hash_ref2] * 1.3
 
 
-def _sorted_any(values):
+def _sorted_any(values: Iterable[Any]) -> list[Any]:
     return sorted(values, key=lambda val: json.dumps(val, sort_keys=True, default=repr))
 
 
-def test_consistent_hash_ref_match():
+def test_consistent_hash_ref_match() -> None:
     """Compare implementations on arbitrary supported values"""
     values = [
         *[val for val1, val2, _ in CONSISTENT_HASH_TEST_CASES for val in (val1, val2)],
