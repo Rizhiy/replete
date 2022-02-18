@@ -3,10 +3,6 @@ include:
   - project: utilities/nt-dev
     file: nt_dev/release/gitlab-python-tests-basic.yml
 
-.common__tests:
-  script:
-    - ntest --doctest-modules --coverage --exitfirst
-
 test-mypy:
   extends: .common__tests_frozen
   script:
