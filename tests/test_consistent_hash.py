@@ -3,9 +3,9 @@ from __future__ import annotations
 import hashlib
 import json
 import operator
-from collections.abc import Iterable, Mapping, Sequence
+from collections.abc import Callable, Iterable, Mapping, Sequence
 from time import process_time
-from typing import Any, Callable, Optional, Union
+from typing import Any, Optional, Union
 
 import pytest
 import xxhash

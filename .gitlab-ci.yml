@@ -1,15 +1,16 @@
+---
 include:
-- project: utilities/nt-dev
-  file: nt_dev/release/gitlab-python-tests-basic.yml
+  - project: utilities/nt-dev
+    file: nt_dev/release/gitlab-python-tests-basic.yml
 
 .common__tests:
   script:
-  - ntest --doctest-modules --coverage --exitfirst
+    - ntest --doctest-modules --coverage --exitfirst
 
 test-mypy:
   extends: .common__tests_frozen
   script:
-  - nt-mypy .
+    - nt-mypy .
 
 test-mypy-strict:
   extends: .common__tests_frozen
@@ -17,3 +18,8 @@ test-mypy-strict:
     - mypy --strict . || exit 1
   allow_failure:
     exit_codes: 1
+
+check-yamlfix:
+  extends: .common__tests_frozen
+  script:
+    - nt-yamlfix --check
