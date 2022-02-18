@@ -15,12 +15,12 @@ dependencies = [
 
 [project.optional-dependencies]
 tests = [
-    "nt-dev>=0.29",
+    "nt-dev>=0.32",
     "pytest-asyncio",
     "types-xxhash",
 ]
 dev = [
-    "nt-dev>=0.29",
+    "nt-dev>=0.32",
 ]
 
 [tool.flit.module]
