@@ -2,13 +2,16 @@ from __future__ import annotations
 
 import datetime as dt
 from collections.abc import Callable, Hashable, Iterable, Mapping, Sequence
-from typing import Optional, TypeVar, cast
+from typing import Any, Optional, TypeVar, cast
+
+from nt_utils.abc import Comparable
 
 TKey = TypeVar("TKey", bound=Hashable)
 TVal = TypeVar("TVal")
 # For `sort`-like `key=...` argument:
 TSourceVal = TypeVar("TSourceVal")
-TSortKey = Callable[[TSourceVal], TVal]
+TCmpVal = TypeVar("TCmpVal", bound=Comparable)
+TSortKey = Callable[[TSourceVal], TCmpVal]
 
 
 def grouped(items: Iterable[tuple[TKey, TVal]]) -> dict[TKey, list[TVal]]:
@@ -98,7 +101,7 @@ def ensure_unique_keys(items: Iterable[tuple[TKey, TVal]]) -> dict[TKey, TVal]:
     return result
 
 
-def deep_update(target: dict, updates: Mapping) -> dict:
+def deep_update(target: dict[Any, Any], updates: Mapping[Any, Any]) -> dict[Any, Any]:
     """
     >>> target = dict(a=1, b=dict(c=2, d=dict(e="f", g="h"), i=dict(j="k")))
     >>> updates = dict(i="i", j="j", b=dict(c=dict(c2="c2"), d=dict(e="f2")))
@@ -116,13 +119,17 @@ def deep_update(target: dict, updates: Mapping) -> dict:
     return target
 
 
+def _sort_identity(val: TSourceVal) -> TCmpVal:
+    return cast(TCmpVal, val)
+
+
 def bisect_left(
     data: Sequence[TSourceVal],
-    value: TVal,
+    value: TCmpVal,
     lo: int = 0,
-    hi: int = None,
-    key: TSortKey = cast(TSortKey, lambda val: val),
-):
+    hi: Optional[int] = None,
+    key: TSortKey[TSourceVal, TCmpVal] = _sort_identity,
+) -> int:
     """
     `bisect.bisect_left` with the additional `key` support.
 
@@ -145,11 +152,11 @@ def bisect_left(
 
 def bisect_right(
     data: Sequence[TSourceVal],
-    value: TVal,
+    value: TCmpVal,
     lo: int = 0,
-    hi: int = None,
-    key: TSortKey = cast(TSortKey, lambda val: val),
-):
+    hi: Optional[int] = None,
+    key: TSortKey[TSourceVal, TCmpVal] = _sort_identity,
+) -> int:
     """
     `bisect.bisect_right` with the additional `key` support.
 

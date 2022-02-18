@@ -34,3 +34,5 @@ nt-format
 
 Before pushing a commit, you can run `nt-test --format` which will try to
 format the files and run tests.
+
+This project is *preferentially* `mypy --strict` typed, without enforcement in CI.

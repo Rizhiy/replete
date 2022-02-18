@@ -6,9 +6,14 @@ import functools
 import inspect
 from collections.abc import Callable, Sequence
 from dataclasses import dataclass, field
-from typing import Any, ClassVar, NamedTuple, Optional
+from typing import Any, ClassVar, Generic, NamedTuple, Optional, TypeVar, Union, cast, overload
 
 import docstring_parser
+
+T = TypeVar("T")
+TRet = TypeVar("TRet")
+TCallable = TypeVar("TCallable", bound=Union[Callable[..., TRet], Callable[..., None]])
+NoneType = type(None)
 
 
 def pairs_to_dict(
@@ -17,7 +22,7 @@ def pairs_to_dict(
     allow_empty: bool = True,
     name: str = "",
 ) -> Callable[[Any], Any]:
-    def _pairs_to_dict_configured(items: Optional[Sequence[Any]]):
+    def _pairs_to_dict_configured(items: Optional[Sequence[T]]) -> dict[T, T]:
         if not items:
             if allow_empty:
                 return {}
@@ -41,6 +46,45 @@ def parse_bool(value: str) -> bool:
     raise ValueError(f"Not a valid bool: {value!r}; must be `true` or `false`")
 
 
+def _resolve_type_annotation(type_annotation: Any, annotations_ns: Optional[dict[str, Any]] = None) -> tuple[Any, Any]:
+    if type_annotation is inspect.Signature.empty:
+        return None, None
+    if isinstance(type_annotation, str):
+        try:
+            type_annotation = eval(type_annotation, annotations_ns or {})
+        except Exception:
+            return None, None
+
+    type_origin = getattr(type_annotation, "__origin__", None)
+    if type_origin is None:
+        return type_annotation, None
+    # Otherwise, assuming something like e.g. `typing._GenericAlias`
+    type_args: tuple[Any, ...] = getattr(type_annotation, "__args__", None) or ()
+
+    # `Optional[X]` support
+    if type_origin is Union and len(type_args) == 2 and NoneType in type_args:
+        inner_type = next((item for item in type_args if item is not NoneType), None)
+        if hasattr(inner_type, "__origin__"):
+            return _resolve_type_annotation(inner_type, annotations_ns=annotations_ns)
+        return inner_type, None
+
+    type_name = getattr(type_annotation, "_name", None) or getattr(type_origin, "__name__", None)
+    if type_origin is dict:
+        if isinstance(type_args, tuple) and len(type_args) == 2:
+            return type_origin, type_args
+        return type_origin, None
+    elif type_origin in (list, tuple):
+        if isinstance(type_args, tuple) and len(type_args) == 1:
+            return type_origin, type_args[0]
+        return type_origin, None
+    elif type_name in ("Sequence", "Iterable"):
+        if isinstance(type_args, tuple) and len(type_args) == 1:
+            return list, type_args[0]
+        return list, None
+    # Not recognized.
+    return None, None
+
+
 class ParamInfo(NamedTuple):
     name: str
     required: bool = True
@@ -50,11 +94,15 @@ class ParamInfo(NamedTuple):
     contained_type: Any = None
     extra_args: bool = False
     extra_kwargs: bool = False
-    doc: str = None
+    doc: Optional[str] = None
 
     @classmethod
     def from_arg_param(
-        cls, arg_param: inspect.Parameter, annotations_ns: dict = None, default: Any = None, **kwargs: Any
+        cls,
+        arg_param: inspect.Parameter,
+        annotations_ns: Optional[dict[str, Any]] = None,
+        default: Any = None,
+        **kwargs: Any,
     ) -> ParamInfo:
         if default is not None:
             required = False
@@ -62,37 +110,9 @@ class ParamInfo(NamedTuple):
             required = arg_param.default is inspect.Signature.empty
             default = arg_param.default if not required else None
 
-        value_type = arg_param.annotation
-        if value_type is inspect.Signature.empty:
-            value_type = None
-
-        if not value_type and default is not None:
+        value_type, value_contained_type = _resolve_type_annotation(arg_param.annotation, annotations_ns=annotations_ns)
+        if value_type is None and default is not None:
             value_type = type(default)
-        if isinstance(value_type, str):
-            try:
-                value_type = eval(value_type, annotations_ns or {})
-            except Exception:
-                value_type = None
-
-        value_contained_type = None
-        if hasattr(value_type, "__origin__"):  # e.g. `typing._GenericAlias`
-            type_origin = value_type.__origin__
-            type_args = value_type.__args__
-            type_name = getattr(value_type, "_name", None) or type_origin.__name__
-            if type_origin is dict:
-                value_type = dict
-                if isinstance(type_args, tuple) and len(type_args) == 2:
-                    value_contained_type = type_args
-            elif type_origin in (list, tuple):
-                value_type = type_origin
-                if isinstance(type_args, tuple) and len(type_args) == 1:
-                    value_contained_type = type_args[0]
-            elif type_name in ("Sequence", "Iterable"):
-                value_type = list
-                if isinstance(type_args, tuple) and len(type_args) == 1:
-                    value_contained_type = type_args[0]
-            else:
-                value_type = None
 
         return cls(
             name=arg_param.name,
@@ -107,22 +127,22 @@ class ParamInfo(NamedTuple):
 
 
 class ParamExtras(NamedTuple):
-    param_info: ParamInfo = None
-    name_norm: str = None
-    arg_argparse_extra_kwargs: dict[str, Any] = None
-    arg_postprocess: Callable[[Any], Any] = None
-    type_converter: Callable[[Any], Any] = None
-    type_postprocessor: Callable[[Any], Any] = None
+    param_info: Optional[ParamInfo] = None
+    name_norm: Optional[str] = None
+    arg_argparse_extra_kwargs: Optional[dict[str, Any]] = None
+    arg_postprocess: Optional[Callable[[Any], Any]] = None
+    type_converter: Optional[Callable[[Any], Any]] = None
+    type_postprocessor: Optional[Callable[[Any], Any]] = None
 
-    def replace(self, **kwargs) -> ParamExtras:
+    def replace(self, **kwargs: Any) -> ParamExtras:
         return self._replace(**kwargs)
 
 
 @dataclass
-class AutoCLIBase:
+class AutoCLIBase(Generic[TCallable]):
     """Base interface for an automatic function-to-CLI processing"""
 
-    func: Callable
+    func: TCallable
     argv: Optional[Optional[Sequence[Any]]] = None
 
     fail_on_unknown_args: bool = True  # safe default
@@ -148,17 +168,17 @@ class AutoCLIBase:
         ),
     }
 
-    def __call__(self, *args, **kwargs):
+    def __call__(self, *args: Any, **kwargs: Any) -> Optional[TRet]:
         raise NotImplementedError
 
     @classmethod
     def _make_param_infos(
         cls,
-        func,
+        func: Callable[..., Any],
         params_docs: Optional[dict[str, Any]] = None,
         annotations_ns: Optional[dict[str, Any]] = None,
         defaults: Optional[dict[str, Any]] = None,
-        signature: inspect.Signature = None,
+        signature: Optional[inspect.Signature] = None,
     ) -> Sequence[ParamInfo]:
         signature = signature or inspect.signature(func, follow_wrapped=False)
         params_docs = params_docs or {}
@@ -176,7 +196,7 @@ class _TunedHelpFormatter(argparse.ArgumentDefaultsHelpFormatter, argparse.RawDe
     _default_width: ClassVar[Optional[int]] = None
     _default_max_help_position: ClassVar[Optional[int]] = None
 
-    def __init__(self, *args, **kwargs):
+    def __init__(self, *args: Any, **kwargs: Any) -> None:
         if self._default_width is not None:
             kwargs["width"] = kwargs.get("width", self._default_width)
         if self._default_max_help_position is not None:
@@ -189,7 +209,7 @@ def _indent(value: str, indentation: str = "    ") -> str:
 
 
 @dataclass
-class AutoCLI(AutoCLIBase):
+class AutoCLI(AutoCLIBase[TCallable]):
     """
     `argparse.ArgumentParser`-based automatic-function-to-CLI.
     """
@@ -197,10 +217,10 @@ class AutoCLI(AutoCLIBase):
     help_width: Optional[int] = None
     max_help_position: Optional[int] = None
     formatter_class: type[argparse.HelpFormatter] = _TunedHelpFormatter
-    signature_override: inspect.Signature = None
+    signature_override: Optional[inspect.Signature] = None
     _description_indent: str = "  "
     # mock default for `dataclass`, gets filled in `__post_init__` with an actual value.
-    __wrapped__: Callable = lambda: None
+    __wrapped__: Callable[..., Any] = lambda: None
 
     @classmethod
     def _base_param_extras(cls, param_info: ParamInfo) -> ParamExtras:
@@ -209,13 +229,15 @@ class AutoCLI(AutoCLIBase):
         extras = extras_factory(param_info)
         if extras.param_info is None:  # For easier `TYPE_AUTO_PARAMS`.
             extras = extras.replace(param_info=param_info)
+        else:
+            param_info = extras.param_info
         if extras.type_converter is None and param_type in cls.TYPE_CONVERTERS:
             extras = extras.replace(type_converter=cls.TYPE_CONVERTERS[param_type])
         if extras.name_norm is None:
-            extras = extras.replace(name_norm=cls._param_to_arg_name_norm(extras.param_info.name))
+            extras = extras.replace(name_norm=cls._param_to_arg_name_norm(param_info.name))
         return extras
 
-    def __post_init__(self):
+    def __post_init__(self) -> None:
         functools.wraps(self.func)(self)
 
     def _full_params_extras(self, param_infos: Sequence[ParamInfo]) -> dict[str, ParamExtras]:
@@ -239,9 +261,9 @@ class AutoCLI(AutoCLIBase):
         return result
 
     def _make_full_parser_and_params_extras(
-        self, defaults: dict
+        self, defaults: dict[str, Any]
     ) -> tuple[argparse.ArgumentParser, dict[str, ParamExtras]]:
-        docs = docstring_parser.parse(self.func.__doc__)
+        docs = docstring_parser.parse(self.func.__doc__ or "")
         params_docs = {param.arg_name: param.description for param in docs.params} if docs.params else {}
         description = "\n\n".join(item for item in (docs.short_description, docs.long_description) if item)
         description = _indent(description, self._description_indent)
@@ -282,7 +304,13 @@ class AutoCLI(AutoCLIBase):
         return "--" + name_norm.replace("_", "-")
 
     @classmethod
-    def _add_argument(cls, parser, name, param, arg_extra_kwargs: Optional[dict[str, Any]] = None) -> None:
+    def _add_argument(
+        cls,
+        parser: argparse.ArgumentParser,
+        name: str,
+        param: ParamInfo,
+        arg_extra_kwargs: Optional[dict[str, Any]] = None,
+    ) -> None:
         if param.required:
             arg_name = cls._pos_param_to_arg_name(name)
         else:
@@ -301,11 +329,14 @@ class AutoCLI(AutoCLIBase):
         arg_extra_kwargs = dict(arg_extra_kwargs or {})
         arg_extra_args = arg_extra_kwargs.pop("__args__", None) or ()
         arg_kwargs.update(arg_extra_kwargs)
-        parser.add_argument(arg_name, *arg_extra_args, **arg_kwargs)
+        parser.add_argument(arg_name, *arg_extra_args, **arg_kwargs)  # type: ignore  # very tricky typing.
 
-    def _make_overridden_defaults(self, args: tuple, kwargs: dict[str, Any]) -> tuple[dict[str, Any], tuple]:
+    def _make_overridden_defaults(
+        self, args: tuple[Any, ...], kwargs: dict[str, Any]
+    ) -> tuple[dict[str, Any], tuple[Any, ...]]:
+        var_args = cast(tuple[Any, ...], ())
         if not args:
-            return kwargs or {}, ()
+            return kwargs or {}, var_args
         signature = inspect.signature(self.func)
 
         var_arg = next(
@@ -319,16 +350,18 @@ class AutoCLI(AutoCLIBase):
         if var_kwarg is not None:
             raise Exception("Not currently supported: `**kwargs` in function")
 
-        return signature.bind_partial(*args, **kwargs).arguments, ()
+        return signature.bind_partial(*args, **kwargs).arguments, var_args
 
-    def _postprocess_values(self, parsed_kwargs: dict, params_extras: dict[str, ParamExtras]) -> dict:
+    def _postprocess_values(
+        self, parsed_kwargs: dict[str, Any], params_extras: dict[str, ParamExtras]
+    ) -> dict[str, Any]:
         parsed_kwargs = parsed_kwargs.copy()
         for name, param_extras in params_extras.items():
             if param_extras.arg_postprocess and name in parsed_kwargs:
                 parsed_kwargs[name] = param_extras.arg_postprocess(parsed_kwargs[name])
         return parsed_kwargs
 
-    def __call__(self, *args, **kwargs):
+    def __call__(self, *args: Any, **kwargs: Any) -> Optional[TRet]:
         defaults, var_args = self._make_overridden_defaults(args, kwargs)
 
         parser, params_extras = self._make_full_parser_and_params_extras(defaults=defaults)
@@ -348,14 +381,41 @@ class AutoCLI(AutoCLIBase):
         return self.func(*full_args, **full_kwargs)
 
 
-def autocli(func=None, **config):
-    def autocli_wrap(func):
-        actual_config = config.copy()
+def get_caller_ns(extra_stack: int = 0) -> Optional[dict[str, Any]]:
+    here = inspect.currentframe()
+    # One step to get caller of this utility function,
+    # extra step to get its caller.
+    for _ in range(2 + extra_stack):
+        if not here:
+            return None
+        here = here.f_back
+    if not here:
+        return None
+    return {**here.f_globals, **here.f_locals}
+
+
+@overload
+def autocli(func: TCallable, **config: Any) -> AutoCLI[TCallable]:
+    ...
+
+
+@overload
+def autocli(func: None = None, **config: Any) -> Callable[[TCallable], AutoCLI[TCallable]]:
+    ...
+
+
+def autocli(
+    func: Optional[TCallable] = None, **config: Any
+) -> Union[AutoCLI[TCallable], Callable[[TCallable], AutoCLI[TCallable]]]:
+    actual_config = config.copy()
+
+    def autocli_wrap(func: TCallable) -> AutoCLI[TCallable]:
         if "annotations_ns" not in actual_config:
-            caller = inspect.currentframe().f_back
-            actual_config["annotations_ns"] = {**caller.f_globals, **caller.f_locals}
+            actual_config["annotations_ns"] = get_caller_ns()
         return AutoCLI(func, **actual_config)
 
     if func is not None:
+        if "annotations_ns" not in actual_config:
+            actual_config["annotations_ns"] = get_caller_ns()
         return autocli_wrap(func)
     return autocli_wrap

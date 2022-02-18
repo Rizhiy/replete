@@ -9,18 +9,18 @@ from nt_utils.aio import LazyWrapAsync
 
 
 @pytest.mark.asyncio
-async def test_lazy_wrap_async():
+async def test_lazy_wrap_async() -> None:
 
     counter = itertools.count()
 
-    async def generate():
+    async def generate() -> int:
         return next(counter)
 
     generate_cached = LazyWrapAsync(generate)
 
     check_value = await generate()
 
-    async def work():
+    async def work() -> int:
         return await generate_cached()
 
     task_count = 30

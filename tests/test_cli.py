@@ -3,10 +3,10 @@ from __future__ import annotations
 import contextlib
 import datetime as dt
 import sys
-from collections.abc import Callable, Sequence
+from collections.abc import Callable, Generator, Sequence
 from functools import partial
 from pathlib import Path
-from typing import NamedTuple, Union
+from typing import Any, NamedTuple, Optional, Union
 
 import pytest
 
@@ -18,9 +18,9 @@ def example_cli(
     output_dir: Path,
     no_help: str,
     res_name: str = "test",
-    date_: dt.date = None,
-    items: dict[str, int] = None,
-    no_type_longname="no type",
+    date_: Optional[dt.date] = None,
+    items: Optional[dict[str, int]] = None,
+    no_type_longname: str = "no type",
 ) -> None:
     """
     Test function
@@ -100,10 +100,10 @@ class CLITestCase(NamedTuple):
     expected_stdout: str
     expected_stderr: str = ""
     expected_code: int = 0
-    func: Callable = example_cli
+    func: Callable[..., Any] = example_cli
 
 
-CLI_TEST_CASES = [
+CLI_TEST_CASES: Sequence[CLITestCase] = [
     CLITestCase(name="no_args", args=[], expected_stdout="", expected_stderr=BAD_ARGS_TEXT, expected_code=2),
     CLITestCase(name="help", args=["--help"], expected_stdout=HELP_TEXT),
     CLITestCase(
@@ -145,7 +145,7 @@ CLI_TEST_CASES = [
 
 
 @contextlib.contextmanager
-def out_capture(attr: str = "stdout"):
+def out_capture(attr: str = "stdout") -> Generator[list[str], None, None]:
     out_data: list[str] = []
 
     def out_write(data: Union[str, bytes]) -> None:
@@ -162,7 +162,7 @@ def out_capture(attr: str = "stdout"):
 
 
 @pytest.mark.parametrize("test_case", CLI_TEST_CASES, ids=[testcase.name for testcase in CLI_TEST_CASES])
-def test_example_cli(test_case, monkeypatch) -> None:
+def test_example_cli(test_case: CLITestCase, monkeypatch: Any) -> None:
     monkeypatch.setattr(sys, "argv", [MAIN_NAME, *test_case.args])
 
     with out_capture(attr="stdout") as stdout_data, out_capture(attr="stderr") as stderr_data:
@@ -178,7 +178,7 @@ def test_example_cli(test_case, monkeypatch) -> None:
     assert stderr.strip() == test_case.expected_stderr.strip()
 
 
-def test_wrapping():
+def test_wrapping() -> None:
     assert isinstance(example_cli, AutoCLI)
     func = example_cli.__wrapped__
     assert func.__name__ == "example_cli"
