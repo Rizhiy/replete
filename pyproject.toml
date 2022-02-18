@@ -17,6 +17,7 @@ dependencies = [
 tests = [
     "nt-dev>=0.29",
     "pytest-asyncio",
+    "types-xxhash",
 ]
 dev = [
     "nt-dev>=0.29",
