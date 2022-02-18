@@ -6,7 +6,7 @@ import functools
 import inspect
 from collections.abc import Callable, Sequence
 from dataclasses import dataclass, field
-from typing import Any, ClassVar, NamedTuple, Optional, Type
+from typing import Any, ClassVar, NamedTuple, Optional
 
 import docstring_parser
 
@@ -196,7 +196,7 @@ class AutoCLI(AutoCLIBase):
 
     help_width: Optional[int] = None
     max_help_position: Optional[int] = None
-    formatter_class: Type[argparse.HelpFormatter] = _TunedHelpFormatter
+    formatter_class: type[argparse.HelpFormatter] = _TunedHelpFormatter
     signature_override: inspect.Signature = None
     _description_indent: str = "  "
     # mock default for `dataclass`, gets filled in `__post_init__` with an actual value.

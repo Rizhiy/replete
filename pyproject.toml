@@ -3,7 +3,7 @@ requires = ["flit_core >=3.4,<4"]
 build-backend = "flit_core.buildapi"
 
 [project]
-name = "nt_utils"
+name = "nt-utils"
 authors = [{name = "Anton Vasilev", email = "a.vasilev@neurotrade.ru"}]
 readme = "README.md"
 requires-python = ">=3.8"
@@ -21,6 +21,9 @@ tests = [
 dev = [
     "nt-dev>=0.29",
 ]
+
+[tool.flit.module]
+name = "nt_utils"
 
 [tool.flit.sdist]
 include = [
