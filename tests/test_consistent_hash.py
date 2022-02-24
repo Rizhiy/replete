@@ -13,6 +13,18 @@ import xxhash
 from nt_utils.consistent_hash import consistent_hash
 from nt_utils.utils import grouped
 
+
+class ConsistentHashObj:
+    def __init__(self, value: int):
+        self._value = value
+
+    def _consistent_hash(self) -> int:
+        return self._value
+
+    def __repr__(self) -> str:
+        return f"{self.__class__.__name__}({self._value})"
+
+
 CONSISTENT_HASH_TEST_CASES: list[tuple[Any, Any, bool]] = [
     # value, value, equal
     ({}, {}, True),
@@ -24,6 +36,9 @@ CONSISTENT_HASH_TEST_CASES: list[tuple[Any, Any, bool]] = [
     ((1,), [2], False),
     ([1, 2], [2, 1], False),
     ({"foo": 1, "bar": 2}, {"foo": 1, "quux": 2}, False),
+    (ConsistentHashObj(123), ConsistentHashObj(123), True),
+    (ConsistentHashObj(123), ConsistentHashObj(1234), False),
+    (dict(cls=ConsistentHashObj), dict(cls=ConsistentHashObj), True),
 ]
 
 
@@ -54,7 +69,7 @@ def consistent_hash_ref2_raw(args: Sequence[Any] = (), kwargs: Optional[dict[str
     params = [*args, *sorted(kwargs.items())] if kwargs else args
     hasher = xxhash.xxh128()
     for param in params:
-        if hasattr(param, "_consistent_hash"):
+        if hasattr(param, "_consistent_hash") and hasattr(param._consistent_hash, "__self__"):
             rec_int = param._consistent_hash()
             hasher.update(rec_int.to_bytes(16, "little"))
         elif isinstance(param, Mapping):
