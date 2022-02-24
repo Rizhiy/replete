@@ -79,7 +79,7 @@ def consistent_hash_ref2_raw(args: Sequence[Any] = (), kwargs: Optional[dict[str
             rec = consistent_hash_ref2_raw(param)
             hasher.update(rec.digest())
         else:
-            hasher.update(repr(param).encode())  # TODO: use `pickle.dumps` instead.
+            hasher.update(repr(param).encode())
     return hasher
 
 
