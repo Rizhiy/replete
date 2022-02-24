@@ -41,7 +41,7 @@ def consistent_hash_raw(
                 param_bytes = param
             else:
                 param_bytes = repr(param).encode()
-        elif chashmeth := getattr(param, "_consistent_hash", None):
+        elif (chashmeth := getattr(param, "_consistent_hash", None)) and getattr(chashmeth, "__self__", None):
             rec_int = chashmeth()
             param_bytes = rec_int.to_bytes(16, "little")
         elif isinstance(param, collections.abc.Mapping):
