@@ -10,7 +10,7 @@ from typing import Any, Optional, Union
 import pytest
 import xxhash
 
-from nt_utils.consistent_hash import consistent_hash
+from nt_utils.consistent_hash import consistent_hash, picklehash
 from nt_utils.utils import grouped
 
 
@@ -97,13 +97,14 @@ def test_consistent_hash_ref_perf() -> None:
             consistent_hash_func(CONSISTENT_HASH_TEST_CASES)
         return process_time() - t01
 
-    funcs = [consistent_hash, consistent_hash_ref2, consistent_hash_ref]
+    funcs: list[Callable[..., Any]] = [consistent_hash, consistent_hash_ref2, consistent_hash_ref, picklehash]
     all_timings = [{func: time_stuff(func) for func in funcs} for _ in range(5)]
     min_timings = {key: min(timing[key] for timing in all_timings) for key in all_timings[0]}
 
     assert min_timings[consistent_hash] < min_timings[consistent_hash_ref]
     # No significant difference expected for the current simple examples.
     assert min_timings[consistent_hash] < min_timings[consistent_hash_ref2] * 1.3
+    assert min_timings[picklehash] < min_timings[consistent_hash_ref2] * 0.7
 
 
 def _sorted_any(values: Iterable[Any]) -> list[Any]:
@@ -120,3 +121,5 @@ def test_consistent_hash_ref_match() -> None:
     groups = grouped((consistent_hash(val), val) for val in values)
     groups_ref = grouped((consistent_hash_ref(val), val) for val in values)
     assert _sorted_any(groups.values()) == _sorted_any(groups_ref.values())
+    ph_groups = grouped((picklehash(val), val) for val in values)
+    assert _sorted_any(ph_groups.values()) == _sorted_any(groups_ref.values())

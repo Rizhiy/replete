@@ -3,8 +3,8 @@ from __future__ import annotations
 import collections.abc
 import datetime
 import pickle
-from collections.abc import Sequence
-from typing import Any
+from collections.abc import Callable, Sequence
+from typing import Any, Optional
 
 import xxhash
 
@@ -80,3 +80,25 @@ def consistent_hash(*args: Any, **kwargs: Any) -> int:
     params = [*args, *sorted(kwargs.items())] if kwargs else args
     consistent_hash_raw_update(hasher, params)
     return hasher.intdigest() & INT64_MAX
+
+
+def _normalize(value: Any) -> Any:
+    value_type = type(value)
+    if value_type in PRIMITIVE_TYPES:
+        return value
+    chashmeth = getattr(value, "_consistent_hash", None)
+    if chashmeth is not None and getattr(chashmeth, "__self__", None) is not None:
+        return chashmeth()  # Note: makes the result type-independent.
+    if value_type is list or value_type is tuple or isinstance(value, (list, tuple)):
+        return [_normalize(subvalue) for subvalue in value]
+    if value_type is dict or isinstance(value, collections.abc.Mapping):
+        res_value = [(str(subkey), _normalize(subvalue)) for subkey, subvalue in value.items()]
+        res_value.sort()
+        return res_value
+    return value
+
+
+def picklehash(value: Any, normalizer: Optional[Callable[[Any], Any]] = _normalize) -> int:
+    value_norm = normalizer(value) if normalizer is not None else value
+    value_b = pickle.dumps(value_norm, protocol=5)
+    return xxhash.xxh3_64_intdigest(value_b) & INT64_MAX
