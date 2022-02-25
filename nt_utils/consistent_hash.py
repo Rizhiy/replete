@@ -4,13 +4,16 @@ import collections.abc
 import datetime
 import pickle
 from collections.abc import Sequence
-from typing import Any, Optional
+from typing import Any
 
 import xxhash
 
-PRIMITIVE_TYPE_NAMES = frozenset(
-    cls.__name__
-    for cls in (
+# Bitmask value to cap the hash intdigest, so that no overflow occurs when it
+# passes through the `hash()` builtin.
+INT64_MAX = 2**63 - 1
+
+PRIMITIVE_TYPES = frozenset(
+    (
         bytes,
         str,
         int,
@@ -25,30 +28,37 @@ PRIMITIVE_TYPE_NAMES = frozenset(
 )
 
 
-def consistent_hash_raw(
-    args: Sequence[Any] = (),
-    kwargs: Optional[dict[str, Any]] = None,
-    primitive_type_names: frozenset[str] = PRIMITIVE_TYPE_NAMES,
+def consistent_hash_raw_update(
+    hasher: xxhash.xxh3_64,
+    params: Sequence[Any] = (),
+    primitive_types: frozenset[type] = PRIMITIVE_TYPES,
     type_name_dependence: bool = False,
     try_pickle: bool = True,
-) -> xxhash.xxh128:
-    params = [*args, *sorted(kwargs.items())] if kwargs else args
-    hasher = xxhash.xxh128()
+) -> None:
     for param in params:
-        type_name = param.__class__.__name__
-        if type_name in primitive_type_names:
-            if type_name == "bytes":
-                param_bytes = param
-            else:
-                param_bytes = repr(param).encode()
-        elif (chashmeth := getattr(param, "_consistent_hash", None)) and getattr(chashmeth, "__self__", None):
+        param_type = param.__class__
+        if type_name_dependence:
+            hasher.update(b"\x00")
+            hasher.update(param_type.__name__.encode())
+        if param_type is bytes:
+            hasher.update(b"\x01")
+            hasher.update(param)
+        elif param_type in primitive_types:
+            hasher.update(b"\x02")
+            hasher.update(repr(param).encode())
+        elif (chashmeth := getattr(param, "_consistent_hash", None)) is not None and getattr(
+            chashmeth, "__self__", None
+        ) is not None:
             rec_int = chashmeth()
-            param_bytes = rec_int.to_bytes(16, "little")
-        elif isinstance(param, collections.abc.Mapping):
-            param_items = {str(key): value for key, value in param.items()}
-            param_bytes = consistent_hash_raw((), param_items).digest()
-        elif isinstance(param, (list, tuple)):
-            param_bytes = consistent_hash_raw(param).digest()
+            hasher.update(b"\x03")
+            hasher.update(rec_int.to_bytes(8, "big"))
+        elif param_type is dict or isinstance(param, collections.abc.Mapping):
+            param_items = sorted([(str(key), value) for key, value in param.items()])
+            hasher.update(b"\x04")
+            consistent_hash_raw_update(hasher, param_items)
+        elif param_type is list or param_type is tuple or isinstance(param, (list, tuple)):
+            hasher.update(b"\x05")
+            consistent_hash_raw_update(hasher, param)
         else:
             param_bytes = None
             if try_pickle:
@@ -56,15 +66,17 @@ def consistent_hash_raw(
                     param_bytes = pickle.dumps(param)
                 except Exception:
                     pass
-            if param_bytes is None:
+            if param_bytes is not None:
+                hasher.update(b"\x06")
+                hasher.update(param_bytes)
+            else:
                 param_bytes = repr(param).encode()  # Dangerous fallback.
-        if type_name_dependence:
-            hasher.update(b"\x00")
-            hasher.update(type_name.encode())
-            hasher.update(b"\x00")
-        hasher.update(param_bytes)
-    return hasher
+                hasher.update(b"\x07")
+                hasher.update(param_bytes)
 
 
 def consistent_hash(*args: Any, **kwargs: Any) -> int:
-    return consistent_hash_raw(args, kwargs).intdigest()
+    hasher = xxhash.xxh3_64()
+    params = [*args, *sorted(kwargs.items())] if kwargs else args
+    consistent_hash_raw_update(hasher, params)
+    return hasher.intdigest() & INT64_MAX
