@@ -48,7 +48,7 @@ matplotlib-inline==0.1.3  # via ipython
 mccabe==0.6.1             # via flake8
 mypy==0.931               # via nt-dev
 mypy-extensions==0.4.3    # via black, mypy
-nt-dev~=0.32.0            # via nt-utils
+nt-dev~=0.33.0            # via nt-utils
 packaging==21.3           # via bleach, build, pytest, setuptools-scm
 parso==0.8.3              # via jedi
 pathspec==0.9.0           # via black

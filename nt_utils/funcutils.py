@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import operator
 from collections.abc import Callable, Iterable
-from typing import Optional, TypeVar, Union, cast, overload
+from typing import Any, Generic, Optional, TypeVar, Union, cast, overload
 
 
 class Marker:
@@ -135,3 +135,35 @@ def join_backfill(
         while right_item is not right_done_marker and not condition(left_item, cast(TRight, right_item)):
             right_item = next(right_iter, right_done_marker)
         yield left_item, default if right_item is right_done_marker else cast(TRight, right_item)
+
+
+TObj = TypeVar("TObj")
+TRes = TypeVar("TRes")
+
+
+class cached_property(Generic[TObj, TRes]):
+    """
+    See
+    https://github.com/django/django/blob/c6b4d62fa2c7f73b87f6ae7e8cf1d64ee5312dc5/django/utils/functional.py#L57
+    """
+
+    name: Optional[str] = None
+
+    def __init__(self, func: Callable[[TObj], TRes]):
+        self.func = func
+        self.__doc__ = getattr(func, "__doc__")
+
+    def __set_name__(self, owner: Any, name: str) -> None:
+        if self.name is None:
+            self.name = name
+        elif name != self.name:
+            raise TypeError(f"Cannot assign the same cached_property to two different names ({self.name} and {name}).")
+
+    def __get__(self, instance: TObj, cls: Any = None) -> Union[TRes, cached_property[TObj, TRes]]:
+        if instance is None:
+            return self
+        if self.name is None:
+            raise TypeError("Cannot use cached_property instance without calling `__set_name__` on it.")
+        res = self.func(instance)
+        instance.__dict__[self.name] = res
+        return res
