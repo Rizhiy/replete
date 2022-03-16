@@ -18,7 +18,7 @@ TRightDefault = TypeVar("TRightDefault")
 def join_ffill(
     left_lst: Iterable[TLeft],
     right_lst: Iterable[TRight],
-    condition: Callable[[TLeft, TRight], bool] = operator.ge,
+    condition: Callable[[TLeft, TRight], bool] = cast(Callable[[TLeft, TRight], bool], operator.ge),
     default: None = None,
 ) -> Iterable[tuple[TLeft, Union[TRight, None]]]:
     ...
@@ -37,7 +37,7 @@ def join_ffill(
 def join_ffill(
     left_lst: Iterable[TLeft],
     right_lst: Iterable[TRight],
-    condition: Callable[[TLeft, TRight], bool] = operator.ge,
+    condition: Callable[[TLeft, TRight], bool] = cast(Callable[[TLeft, TRight], bool], operator.ge),
     default: Optional[TRightDefault] = None,
 ) -> Iterable[tuple[TLeft, Union[TRight, Optional[TRightDefault]]]]:
     """
@@ -81,7 +81,7 @@ def join_ffill(
 def join_backfill(
     left_lst: Iterable[TLeft],
     right_lst: Iterable[TRight],
-    condition: Callable[[TLeft, TRight], bool] = operator.le,
+    condition: Callable[[TLeft, TRight], bool] = cast(Callable[[TLeft, TRight], bool], operator.le),
     default: None = None,
 ) -> Iterable[tuple[TLeft, Union[TRight, None]]]:
     ...
@@ -100,7 +100,7 @@ def join_backfill(
 def join_backfill(
     left_lst: Iterable[TLeft],
     right_lst: Iterable[TRight],
-    condition: Callable[[TLeft, TRight], bool] = operator.le,
+    condition: Callable[[TLeft, TRight], bool] = cast(Callable[[TLeft, TRight], bool], operator.le),
     default: Optional[TRightDefault] = None,
 ) -> Iterable[tuple[TLeft, Union[TRight, Optional[TRightDefault]]]]:
     """

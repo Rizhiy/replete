@@ -1,7 +1,8 @@
 from __future__ import annotations
 
 import datetime as dt
-from collections.abc import Callable, Hashable, Iterable, Mapping, Sequence
+import itertools
+from collections.abc import Callable, Hashable, Iterable, Iterator, Mapping, Sequence
 from typing import Any, Optional, TypeVar, cast
 
 from nt_utils.abc import Comparable
@@ -35,7 +36,7 @@ def grouped(items: Iterable[tuple[TKey, TVal]]) -> dict[TKey, list[TVal]]:
 TChunkValue = TypeVar("TChunkValue")
 
 
-def chunks(seq: Sequence[TChunkValue], size: int) -> Iterable[Sequence[TChunkValue]]:
+def chunks(seq: Sequence[TChunkValue], size: int) -> Iterator[Sequence[TChunkValue]]:
     """
     Iterate over slices of `seq` with at most `size` elements in each.
 
@@ -44,6 +45,16 @@ def chunks(seq: Sequence[TChunkValue], size: int) -> Iterable[Sequence[TChunkVal
     """
     for pos in range(0, len(seq), size):
         yield seq[pos : pos + size]
+
+
+def iterchunks(iterable: Iterable[TChunkValue], size: int) -> Iterator[Sequence[TChunkValue]]:
+    assert size > 0
+    iterator = iter(iterable)
+    while True:
+        chunk = tuple(itertools.islice(iterator, size))
+        if not chunk:
+            return
+        yield chunk
 
 
 def date_range(start: dt.date, stop: dt.date, step_days: int = 1) -> Iterable[dt.date]:
