@@ -33,10 +33,7 @@ def grouped(items: Iterable[tuple[TKey, TVal]]) -> dict[TKey, list[TVal]]:
     return result
 
 
-TChunkValue = TypeVar("TChunkValue")
-
-
-def chunks(seq: Sequence[TChunkValue], size: int) -> Iterator[Sequence[TChunkValue]]:
+def chunks(seq: Sequence[TVal], size: int) -> Iterator[Sequence[TVal]]:
     """
     Iterate over slices of `seq` with at most `size` elements in each.
 
@@ -47,7 +44,13 @@ def chunks(seq: Sequence[TChunkValue], size: int) -> Iterator[Sequence[TChunkVal
         yield seq[pos : pos + size]
 
 
-def iterchunks(iterable: Iterable[TChunkValue], size: int) -> Iterator[Sequence[TChunkValue]]:
+def iterchunks(iterable: Iterable[TVal], size: int) -> Iterator[Sequence[TVal]]:
+    """
+    Iterate over slices of `seq` with at most `size` elements in each.
+
+    >>> list(iterchunks(range(10), 3))
+    [(0, 1, 2), (3, 4, 5), (6, 7, 8), (9,)]
+    """
     assert size > 0
     iterator = iter(iterable)
     while True:
@@ -55,6 +58,28 @@ def iterchunks(iterable: Iterable[TChunkValue], size: int) -> Iterator[Sequence[
         if not chunk:
             return
         yield chunk
+
+
+def window(iterable: Iterable[TVal], size: int, *, strict_size: bool = True) -> Iterator[Sequence[TVal]]:
+    """
+    >>> list(window(range(5), 3))
+    [(0, 1, 2), (1, 2, 3), (2, 3, 4)]
+    >>> list(window(range(3), 3))
+    [(0, 1, 2)]
+    >>> list(window(range(2), 3))
+    []
+    >>> list(window(range(2), 3, strict_size=False))
+    [(0, 1)]
+    """
+    iterator = iter(iterable)
+    result = tuple(itertools.islice(iterator, size))
+    if strict_size and len(result) < size:
+        return
+    if len(result) <= size:
+        yield result
+    for elem in iterator:
+        result = result[1:] + (elem,)
+        yield result
 
 
 def date_range(start: dt.date, stop: dt.date, step_days: int = 1) -> Iterable[dt.date]:
