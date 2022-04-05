@@ -7,11 +7,12 @@
 --index-url http://192.168.135.12:8083/neurotrade/neurotrade
 --trusted-host 192.168.135.12
 
+astor==0.8.1              # via flake8-simplify
 asttokens==2.0.5          # via stack-data
-attrs==21.4.0             # via pytest
+attrs==21.4.0             # via flake8-bugbear, flake8-eradicate, flake8-implicit-str-concat, pytest
 autoflake==1.4            # via nt-dev
 backcall==0.2.0           # via ipython
-black==22.1.0             # via ipython, nt-dev
+black==22.3.0             # via ipython, nt-dev
 bleach==4.1.0             # via readme-renderer
 build==0.7.0              # via nt-dev
 certifi==2021.10.8        # via requests
@@ -19,6 +20,7 @@ cffi==1.15.0              # via cryptography
 charset-normalizer==2.0.12  # via requests
 click==8.0.3              # via black, click-log, pip-tools, python-semantic-release, yamlfix
 click-log==0.3.2          # via python-semantic-release
+cognitive-complexity==1.2.0  # via flake8-cognitive-complexity
 colorama==0.4.4           # via nt-dev, twine
 coverage==6.3.1     # via nt-dev, pytest-cov
 cryptography==36.0.1      # via secretstorage
@@ -27,8 +29,22 @@ distro==1.7.0             # via ruyaml
 docstring-parser==0.13    # via nt-utils
 docutils==0.18.1          # via readme-renderer
 dotty-dict==1.3.0         # via python-semantic-release
+eradicate==2.0.0          # via flake8-eradicate
 executing==0.8.2          # via stack-data
-flake8==4.0.1             # via nt-dev
+flake8==4.0.1             # via flake8-bugbear, flake8-builtins, flake8-comprehensions, flake8-eradicate, flake8-future-import, flake8-printf-formatting, flake8-simplify, nt-dev
+flake8-bugbear==22.3.23   # via nt-dev
+flake8-builtins==1.5.3    # via nt-dev
+flake8-cognitive-complexity==0.1.0  # via nt-dev
+flake8-comprehensions==3.8.0  # via nt-dev
+flake8-eradicate==1.2.0   # via nt-dev
+flake8-fixme==1.1.1       # via nt-dev
+flake8-future-import==0.4.6  # via nt-dev
+flake8-implicit-str-concat==0.3.0  # via nt-dev
+flake8-plugin-utils==1.3.2  # via flake8-pytest-style
+flake8-printf-formatting==1.1.2  # via nt-dev
+flake8-pytest-style==1.6.0  # via nt-dev
+flake8-simplify==0.19.2   # via nt-dev
+flake8-variables-names==0.0.5  # via nt-dev
 git-filter-repo==2.34.0   # via nt-dev
 gitdb==4.0.9              # via gitpython
 gitpython==3.1.26         # via nt-dev, python-semantic-release
@@ -46,9 +62,10 @@ jq==1.2.2                 # via nt-dev
 keyring==23.5.0           # via twine
 matplotlib-inline==0.1.3  # via ipython
 mccabe==0.6.1             # via flake8
+more-itertools==8.12.0    # via flake8-implicit-str-concat
 mypy==0.931               # via nt-dev
 mypy-extensions==0.4.3    # via black, mypy
-nt-dev~=0.33.0            # via nt-utils
+nt-dev~=0.34.0            # via nt-utils
 packaging==21.3           # via bleach, build, pytest, setuptools-scm
 parso==0.8.3              # via jedi
 pathspec==0.9.0           # via black
@@ -93,11 +110,6 @@ tomlkit==0.7.0            # via python-semantic-release
 tqdm==4.62.3              # via twine
 traitlets==5.1.1          # via ipython, matplotlib-inline
 twine==3.8.0              # via nt-dev, python-semantic-release
-types-pyyaml==6.0.4       # via nt-dev
-types-requests==2.27.10   # via nt-dev
-types-setuptools==57.4.9  # via nt-dev
-types-toml==0.10.4        # via nt-dev
-types-urllib3==1.26.9     # via types-requests
 types-xxhash==2.0.3       # via nt-utils
 typing-extensions==4.1.1  # via black, mypy
 urllib3==1.26.8           # via requests, twine

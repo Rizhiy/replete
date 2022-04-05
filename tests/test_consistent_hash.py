@@ -42,9 +42,9 @@ CONSISTENT_HASH_TEST_CASES: list[tuple[Any, Any, bool]] = [
 ]
 
 
-@pytest.mark.parametrize("a,b,expected", CONSISTENT_HASH_TEST_CASES)
-def test_consistent_hash(a: Any, b: Any, expected: bool) -> None:
-    result = consistent_hash(a) == consistent_hash(b)
+@pytest.mark.parametrize(("value_a", "value_b", "expected"), CONSISTENT_HASH_TEST_CASES)
+def test_consistent_hash(value_a: Any, value_b: Any, expected: bool) -> None:
+    result = consistent_hash(value_a) == consistent_hash(value_b)
     assert result == expected
 
 
@@ -60,8 +60,8 @@ def consistent_hash_ref(*args: Any, **kwargs: Any) -> int:
         else:
             hashes.append(repr(param))
     hasher = hashlib.md5()
-    for h in hashes:
-        hasher.update(str(h).encode())
+    for hash_piece in hashes:
+        hasher.update(str(hash_piece).encode())
     return int(hasher.hexdigest(), 16)
 
 

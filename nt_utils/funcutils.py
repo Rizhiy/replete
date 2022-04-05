@@ -20,7 +20,7 @@ def join_ffill(
     right_lst: Iterable[TRight],
     condition: Callable[[TLeft, TRight], bool] = cast(Callable[[TLeft, TRight], bool], operator.ge),
     default: None = None,
-) -> Iterable[tuple[TLeft, Union[TRight, None]]]:
+) -> Iterable[tuple[TLeft, Optional[TRight]]]:
     ...
 
 
@@ -83,7 +83,7 @@ def join_backfill(
     right_lst: Iterable[TRight],
     condition: Callable[[TLeft, TRight], bool] = cast(Callable[[TLeft, TRight], bool], operator.le),
     default: None = None,
-) -> Iterable[tuple[TLeft, Union[TRight, None]]]:
+) -> Iterable[tuple[TLeft, Optional[TRight]]]:
     ...
 
 
