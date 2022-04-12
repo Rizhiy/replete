@@ -4,7 +4,7 @@ import typing
 from abc import abstractmethod
 from typing import Any, Protocol
 
-C = typing.TypeVar("C", bound="Comparable")
+Cls = typing.TypeVar("Cls", bound="Comparable")
 
 
 class Comparable(Protocol):
@@ -18,5 +18,5 @@ class Comparable(Protocol):
         pass
 
     @abstractmethod
-    def __lt__(self: C, other: C) -> bool:
+    def __lt__(self: Cls, other: Cls) -> bool:
         pass

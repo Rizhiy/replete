@@ -8,7 +8,7 @@ import pytest
 from nt_utils.aio import LazyWrapAsync
 
 
-@pytest.mark.asyncio
+@pytest.mark.asyncio()
 async def test_lazy_wrap_async() -> None:
 
     counter = itertools.count()

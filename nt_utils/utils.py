@@ -155,16 +155,12 @@ def deep_update(target: dict[Any, Any], updates: Mapping[Any, Any]) -> dict[Any,
     return target
 
 
-def _sort_identity(val: TSourceVal) -> TCmpVal:
-    return cast(TCmpVal, val)
-
-
 def bisect_left(
     data: Sequence[TSourceVal],
     value: TCmpVal,
     lo: int = 0,
     hi: Optional[int] = None,
-    key: TSortKey[TSourceVal, TCmpVal] = _sort_identity,
+    key: Optional[TSortKey[TSourceVal, TCmpVal]] = None,
 ) -> int:
     """
     `bisect.bisect_left` with the additional `key` support.
@@ -175,6 +171,8 @@ def bisect_left(
     [0, 0, 0, 1, 1, 2, 2, 2, 2, 4, 4, 5, 5, 6]
     """
     assert lo >= 0
+    if key is None:
+        key = lambda val: cast(TCmpVal, val)
     left = lo
     right = len(data) if hi is None else hi
     while left < right:
@@ -191,7 +189,7 @@ def bisect_right(
     value: TCmpVal,
     lo: int = 0,
     hi: Optional[int] = None,
-    key: TSortKey[TSourceVal, TCmpVal] = _sort_identity,
+    key: Optional[TSortKey[TSourceVal, TCmpVal]] = None,
 ) -> int:
     """
     `bisect.bisect_right` with the additional `key` support.
@@ -202,6 +200,8 @@ def bisect_right(
     [0, 0, 1, 1, 2, 2, 2, 2, 4, 4, 5, 5, 6, 6]
     """
     assert lo >= 0
+    if key is None:
+        key = lambda val: cast(TCmpVal, val)
     left = lo
     right = len(data) if hi is None else hi
     while left < right:

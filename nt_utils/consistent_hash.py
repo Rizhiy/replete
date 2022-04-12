@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import collections.abc
+import contextlib
 import datetime
 import pickle
 from collections.abc import Callable, Sequence
@@ -62,10 +63,8 @@ def consistent_hash_raw_update(
         else:
             param_bytes = None
             if try_pickle:
-                try:
+                with contextlib.suppress(Exception):
                     param_bytes = pickle.dumps(param)
-                except Exception:
-                    pass
             if param_bytes is not None:
                 hasher.update(b"\x06")
                 hasher.update(param_bytes)

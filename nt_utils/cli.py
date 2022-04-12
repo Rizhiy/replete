@@ -89,8 +89,8 @@ class ParamInfo(NamedTuple):
     name: str
     required: bool = True
     default: Any = None
-    type: Any = None
-    # per-item type for sequences, (key_type, value_type) for dicts.
+    value_type: Any = None
+    # per-item type for sequences, (dict_key_type, dict_value_type) for dicts.
     contained_type: Any = None
     extra_args: bool = False
     extra_kwargs: bool = False
@@ -118,7 +118,7 @@ class ParamInfo(NamedTuple):
             name=arg_param.name,
             required=required,
             default=default,
-            type=value_type,
+            value_type=value_type,
             contained_type=value_contained_type,
             extra_args=arg_param.kind is inspect.Parameter.VAR_POSITIONAL,
             extra_kwargs=arg_param.kind is inspect.Parameter.VAR_KEYWORD,
@@ -224,15 +224,15 @@ class AutoCLI(AutoCLIBase[TCallable]):
 
     @classmethod
     def _base_param_extras(cls, param_info: ParamInfo) -> ParamExtras:
-        param_type = param_info.type
-        extras_factory = cls.TYPE_AUTO_PARAMS.get(param_type) or ParamExtras
+        value_type = param_info.value_type
+        extras_factory = cls.TYPE_AUTO_PARAMS.get(value_type) or ParamExtras
         extras = extras_factory(param_info)
         if extras.param_info is None:  # For easier `TYPE_AUTO_PARAMS`.
             extras = extras.replace(param_info=param_info)
         else:
             param_info = extras.param_info
-        if extras.type_converter is None and param_type in cls.TYPE_CONVERTERS:
-            extras = extras.replace(type_converter=cls.TYPE_CONVERTERS[param_type])
+        if extras.type_converter is None and value_type in cls.TYPE_CONVERTERS:
+            extras = extras.replace(type_converter=cls.TYPE_CONVERTERS[value_type])
         if extras.name_norm is None:
             extras = extras.replace(name_norm=cls._param_to_arg_name_norm(param_info.name))
         return extras
@@ -316,7 +316,7 @@ class AutoCLI(AutoCLIBase[TCallable]):
         else:
             arg_name = cls._opt_param_to_arg_name(name)
 
-        type_converter = cls.TYPE_CONVERTERS.get(param.type) or param.type
+        type_converter = cls.TYPE_CONVERTERS.get(param.value_type) or param.value_type
         arg_kwargs = dict(type=type_converter, help=param.doc)
         if not param.required:
             arg_kwargs.update(dict(default=param.default, help=param.doc or " "))
