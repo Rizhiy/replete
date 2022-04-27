@@ -4,10 +4,13 @@ import collections.abc
 import contextlib
 import datetime
 import pickle
-from collections.abc import Callable, Sequence
-from typing import Any, Optional
+from typing import TYPE_CHECKING
 
 import xxhash
+
+if TYPE_CHECKING:
+    from collections.abc import Callable, Sequence
+    from typing import Any
 
 # Bitmask value to cap the hash intdigest, so that no overflow occurs when it
 # passes through the `hash()` builtin.
@@ -54,7 +57,7 @@ def consistent_hash_raw_update(
             hasher.update(b"\x03")
             hasher.update(rec_int.to_bytes(8, "big"))
         elif param_type is dict or isinstance(param, collections.abc.Mapping):
-            param_items = sorted([(str(key), value) for key, value in param.items()])
+            param_items = sorted((str(key), value) for key, value in param.items())
             hasher.update(b"\x04")
             consistent_hash_raw_update(hasher, param_items)
         elif param_type is list or param_type is tuple or isinstance(param, (list, tuple)):
@@ -97,7 +100,7 @@ def _normalize(value: Any) -> Any:
     return value
 
 
-def picklehash(value: Any, normalizer: Optional[Callable[[Any], Any]] = _normalize) -> int:
+def picklehash(value: Any, normalizer: Callable[[Any], Any] | None = _normalize) -> int:
     value_norm = normalizer(value) if normalizer is not None else value
     value_b = pickle.dumps(value_norm, protocol=5)
     return xxhash.xxh3_64_intdigest(value_b) & INT64_MAX

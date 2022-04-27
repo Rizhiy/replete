@@ -2,17 +2,20 @@ from __future__ import annotations
 
 import datetime as dt
 import itertools
-from collections.abc import Callable, Hashable, Iterable, Iterator, Mapping, Sequence
-from typing import Any, Optional, TypeVar, cast
+from typing import TYPE_CHECKING, cast
 
-from nt_utils.abc import Comparable
+if TYPE_CHECKING:
+    from collections.abc import Callable, Hashable, Iterable, Iterator, Mapping, Sequence
+    from typing import Any, TypeVar
 
-TKey = TypeVar("TKey", bound=Hashable)
-TVal = TypeVar("TVal")
-# For `sort`-like `key=...` argument:
-TSourceVal = TypeVar("TSourceVal")
-TCmpVal = TypeVar("TCmpVal", bound=Comparable)
-TSortKey = Callable[[TSourceVal], TCmpVal]
+    from nt_utils.abc import Comparable
+
+    TKey = TypeVar("TKey", bound=Hashable)
+    TVal = TypeVar("TVal")
+    # For `sort`-like `key=...` argument:
+    TSourceVal = TypeVar("TSourceVal")
+    TCmpVal = TypeVar("TCmpVal", bound=Comparable)
+    TSortKey = Callable[[TSourceVal], TCmpVal]
 
 
 def grouped(items: Iterable[tuple[TKey, TVal]]) -> dict[TKey, list[TVal]]:
@@ -100,7 +103,7 @@ def date_range(start: dt.date, stop: dt.date, step_days: int = 1) -> Iterable[dt
         yield start + dt.timedelta(days=step)
 
 
-def datetime_range(start: dt.datetime, stop: Optional[dt.datetime], step: dt.timedelta) -> Iterable[dt.datetime]:
+def datetime_range(start: dt.datetime, stop: dt.datetime | None, step: dt.timedelta) -> Iterable[dt.datetime]:
     """
     :param stop: can be `None` to make an infinite generator.
     :param precise: use (slower) multiplication to avoid rounding errors.
@@ -159,8 +162,8 @@ def bisect_left(
     data: Sequence[TSourceVal],
     value: TCmpVal,
     lo: int = 0,
-    hi: Optional[int] = None,
-    key: Optional[TSortKey[TSourceVal, TCmpVal]] = None,
+    hi: int | None = None,
+    key: TSortKey[TSourceVal, TCmpVal] | None = None,
 ) -> int:
     """
     `bisect.bisect_left` with the additional `key` support.
@@ -188,8 +191,8 @@ def bisect_right(
     data: Sequence[TSourceVal],
     value: TCmpVal,
     lo: int = 0,
-    hi: Optional[int] = None,
-    key: Optional[TSortKey[TSourceVal, TCmpVal]] = None,
+    hi: int | None = None,
+    key: TSortKey[TSourceVal, TCmpVal] | None = None,
 ) -> int:
     """
     `bisect.bisect_right` with the additional `key` support.
