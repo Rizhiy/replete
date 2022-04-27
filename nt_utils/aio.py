@@ -1,10 +1,14 @@
 from __future__ import annotations
 
 import asyncio
-from collections.abc import AsyncIterable, Awaitable, Callable
-from typing import TypeVar
+from typing import TYPE_CHECKING
 
-T = TypeVar("T")
+if TYPE_CHECKING:
+    from collections.abc import AsyncIterable, Awaitable, Callable
+    from typing import TypeVar
+
+    T = TypeVar("T")
+    TLazyWrapValue = TypeVar("TLazyWrapValue")
 
 
 async def alist(aiter: AsyncIterable[T]) -> list[T]:
@@ -25,9 +29,6 @@ async def achunked(aiterable: AsyncIterable[T], size: int) -> AsyncIterable[list
             chunk = []
     if chunk:
         yield chunk
-
-
-TLazyWrapValue = TypeVar("TLazyWrapValue")
 
 
 class LazyWrapAsync:

@@ -2,7 +2,11 @@ from __future__ import annotations
 
 import typing
 from abc import abstractmethod
-from typing import Any, Protocol
+from typing import TYPE_CHECKING, Protocol
+
+if TYPE_CHECKING:
+    from typing import Any
+
 
 Cls = typing.TypeVar("Cls", bound="Comparable")
 

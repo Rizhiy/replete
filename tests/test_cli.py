@@ -3,14 +3,17 @@ from __future__ import annotations
 import contextlib
 import datetime as dt
 import sys
-from collections.abc import Callable, Generator, Sequence
 from functools import partial
 from pathlib import Path
-from typing import Any, NamedTuple, Optional, Union
+from typing import TYPE_CHECKING, NamedTuple, Optional
 
 import pytest
 
 from nt_utils.cli import AutoCLI, autocli
+
+if TYPE_CHECKING:
+    from collections.abc import Generator, Sequence
+    from typing import Any, Callable
 
 
 @autocli(fail_on_unknown_args=False, help_width=100, max_help_position=50)
@@ -148,7 +151,7 @@ CLI_TEST_CASES: Sequence[CLITestCase] = [
 def out_capture(attr: str = "stdout") -> Generator[list[str], None, None]:
     out_data: list[str] = []
 
-    def out_write(data: Union[str, bytes]) -> None:
+    def out_write(data: str | bytes) -> None:
         if isinstance(data, bytes):
             data = data.decode("utf-8", errors="replace")
         out_data.append(data)

@@ -3,15 +3,19 @@ from __future__ import annotations
 import hashlib
 import json
 import operator
-from collections.abc import Callable, Iterable, Mapping, Sequence
+from collections.abc import Mapping
 from time import process_time
-from typing import Any, Optional, Union
+from typing import TYPE_CHECKING
 
 import pytest
 import xxhash
 
 from nt_utils.consistent_hash import consistent_hash, picklehash
 from nt_utils.utils import grouped
+
+if TYPE_CHECKING:
+    from collections.abc import Callable, Iterable, Sequence
+    from typing import Any
 
 
 class ConsistentHashObj:
@@ -51,7 +55,7 @@ def test_consistent_hash(value_a: Any, value_b: Any, expected: bool) -> None:
 def consistent_hash_ref(*args: Any, **kwargs: Any) -> int:
     """Reference (old) implementation of `consistent_hash`"""
     params = [*args, *sorted(kwargs.items(), key=operator.itemgetter(0))]
-    hashes: list[Union[int, str]] = []
+    hashes: list[int | str] = []
     for param in params:
         if isinstance(param, Mapping):
             hashes.append(consistent_hash(**{str(key): value for key, value in param.items()}))
@@ -65,7 +69,7 @@ def consistent_hash_ref(*args: Any, **kwargs: Any) -> int:
     return int(hasher.hexdigest(), 16)
 
 
-def consistent_hash_ref2_raw(args: Sequence[Any] = (), kwargs: Optional[dict[str, Any]] = None) -> xxhash.xxh128:
+def consistent_hash_ref2_raw(args: Sequence[Any] = (), kwargs: dict[str, Any] | None = None) -> xxhash.xxh128:
     params = [*args, *sorted(kwargs.items())] if kwargs else args
     hasher = xxhash.xxh128()
     for param in params:

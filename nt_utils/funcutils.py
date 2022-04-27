@@ -1,17 +1,21 @@
 from __future__ import annotations
 
 import operator
-from collections.abc import Callable, Iterable
-from typing import Optional, TypeVar, Union, cast, overload
+from collections.abc import Callable
+from typing import TYPE_CHECKING, TypeVar, cast, overload
 
+if TYPE_CHECKING:
+    from collections.abc import Iterable
 
-class Marker:
-    """Special class for comparison markers (for use instead of `NoneType`)"""
+    TRightDefault = TypeVar("TRightDefault")
 
 
 TLeft = TypeVar("TLeft")
 TRight = TypeVar("TRight")
-TRightDefault = TypeVar("TRightDefault")
+
+
+class Marker:
+    """Special class for comparison markers (for use instead of `NoneType`)"""
 
 
 @overload
@@ -20,7 +24,7 @@ def join_ffill(
     right_lst: Iterable[TRight],
     condition: Callable[[TLeft, TRight], bool] = cast(Callable[[TLeft, TRight], bool], operator.ge),
     default: None = None,
-) -> Iterable[tuple[TLeft, Optional[TRight]]]:
+) -> Iterable[tuple[TLeft, TRight | None]]:
     ...
 
 
@@ -30,7 +34,7 @@ def join_ffill(
     right_lst: Iterable[TRight],
     condition: Callable[[TLeft, TRight], bool],
     default: TRightDefault,
-) -> Iterable[tuple[TLeft, Union[TRight, TRightDefault]]]:
+) -> Iterable[tuple[TLeft, TRight | TRightDefault]]:
     ...
 
 
@@ -38,8 +42,8 @@ def join_ffill(
     left_lst: Iterable[TLeft],
     right_lst: Iterable[TRight],
     condition: Callable[[TLeft, TRight], bool] = cast(Callable[[TLeft, TRight], bool], operator.ge),
-    default: Optional[TRightDefault] = None,
-) -> Iterable[tuple[TLeft, Union[TRight, Optional[TRightDefault]]]]:
+    default: TRightDefault | None = None,
+) -> Iterable[tuple[TLeft, TRight | TRightDefault | None]]:
     """
     Join values to a sorted `left_lst` from sorted `right_lst`,
     switching to next `right_lst` item when `condition` passes
@@ -68,8 +72,8 @@ def join_ffill(
     """
     right_iter = iter(right_lst)
     right_done_marker = Marker()
-    right_item: Union[TRight, Optional[TRightDefault]] = default
-    next_right_item: Union[TRight, Marker] = next(right_iter, right_done_marker)
+    right_item: TRight | TRightDefault | None = default
+    next_right_item: TRight | Marker = next(right_iter, right_done_marker)
     for left_item in left_lst:
         while next_right_item is not right_done_marker and condition(left_item, cast(TRight, next_right_item)):
             right_item = cast(TRight, next_right_item)
@@ -83,7 +87,7 @@ def join_backfill(
     right_lst: Iterable[TRight],
     condition: Callable[[TLeft, TRight], bool] = cast(Callable[[TLeft, TRight], bool], operator.le),
     default: None = None,
-) -> Iterable[tuple[TLeft, Optional[TRight]]]:
+) -> Iterable[tuple[TLeft, TRight | None]]:
     ...
 
 
@@ -93,7 +97,7 @@ def join_backfill(
     right_lst: Iterable[TRight],
     condition: Callable[[TLeft, TRight], bool],
     default: TRightDefault,
-) -> Iterable[tuple[TLeft, Union[TRight, TRightDefault]]]:
+) -> Iterable[tuple[TLeft, TRight | TRightDefault]]:
     ...
 
 
@@ -101,8 +105,8 @@ def join_backfill(
     left_lst: Iterable[TLeft],
     right_lst: Iterable[TRight],
     condition: Callable[[TLeft, TRight], bool] = cast(Callable[[TLeft, TRight], bool], operator.le),
-    default: Optional[TRightDefault] = None,
-) -> Iterable[tuple[TLeft, Union[TRight, Optional[TRightDefault]]]]:
+    default: TRightDefault | None = None,
+) -> Iterable[tuple[TLeft, TRight | TRightDefault | None]]:
     """
     Join values to a sorted `left_lst` from sorted `right_lst`,
     switching to next `right_lst` item (or `default`) when `condition` stops passing.
@@ -130,7 +134,7 @@ def join_backfill(
     """
     right_iter = iter(right_lst)
     right_done_marker = Marker()
-    right_item: Union[TRight, Marker] = next(right_iter, right_done_marker)
+    right_item: TRight | Marker = next(right_iter, right_done_marker)
     for left_item in left_lst:
         while right_item is not right_done_marker and not condition(left_item, cast(TRight, right_item)):
             right_item = next(right_iter, right_done_marker)
