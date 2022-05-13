@@ -85,6 +85,20 @@ def window(iterable: Iterable[TVal], size: int, *, strict_size: bool = True) -> 
         yield result
 
 
+def split_list(items: Iterable[TVal], condition: Callable[[TVal], bool]) -> tuple[list[TVal], list[TVal]]:
+    """
+    Split list items into `(matching, non_matching)` by `cond(item)` callable.
+    """
+    matching = []
+    non_matching = []
+    for item in items:
+        if condition(item):
+            matching.append(item)
+        else:
+            non_matching.append(item)
+    return matching, non_matching
+
+
 def date_range(start: dt.date, stop: dt.date, step_days: int = 1) -> Iterable[dt.date]:
     """
     Simple `range`-like for `datetime.date`.
