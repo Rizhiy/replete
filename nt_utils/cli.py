@@ -206,7 +206,6 @@ class AutoCLIBase(Generic[TCallable]):
 
 
 class _TunedHelpFormatter(argparse.ArgumentDefaultsHelpFormatter, argparse.RawDescriptionHelpFormatter):
-
     _default_width: ClassVar[int | None] = None
     _default_max_help_position: ClassVar[int | None] = None
 
