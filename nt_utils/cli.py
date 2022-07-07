@@ -18,7 +18,7 @@ if TYPE_CHECKING:
     T = TypeVar("T")
 
 TRet = TypeVar("TRet")
-TCallable = TypeVar("TCallable", bound=Union[Callable[..., TRet], Callable[..., None]])
+TCallable = TypeVar("TCallable", bound=Union[Callable[..., TRet], Callable[..., None]])  # type: ignore
 NoneType = type(None)
 
 

@@ -4,14 +4,12 @@ import hashlib
 import json
 import operator
 from collections.abc import Mapping
-from time import process_time
 from typing import TYPE_CHECKING
 
 import pytest
 import xxhash
 
-from nt_utils.consistent_hash import consistent_hash, picklehash
-from nt_utils.utils import grouped
+from nt_utils import Timer, consistent_hash, grouped, picklehash
 
 if TYPE_CHECKING:
     from collections.abc import Callable, Iterable, Sequence
@@ -93,13 +91,13 @@ def consistent_hash_ref2(*args: Any, **kwargs: Any) -> int:
 
 def test_consistent_hash_ref_perf() -> None:
     def time_stuff(consistent_hash_func: Callable[..., Any], count: int = 1000) -> float:
-        t01 = process_time()
-        for _ in range(count):
-            for val1, val2, _ in CONSISTENT_HASH_TEST_CASES:
-                consistent_hash_func(val1)
-                consistent_hash_func(val2)
-            consistent_hash_func(CONSISTENT_HASH_TEST_CASES)
-        return process_time() - t01
+        with Timer() as t:
+            for _ in range(count):
+                for val1, val2, _ in CONSISTENT_HASH_TEST_CASES:
+                    consistent_hash_func(val1)
+                    consistent_hash_func(val2)
+                consistent_hash_func(CONSISTENT_HASH_TEST_CASES)
+        return t.time
 
     funcs: list[Callable[..., Any]] = [consistent_hash, consistent_hash_ref2, consistent_hash_ref, picklehash]
     all_timings = [{func: time_stuff(func) for func in funcs} for _ in range(5)]
@@ -107,8 +105,8 @@ def test_consistent_hash_ref_perf() -> None:
 
     assert min_timings[consistent_hash] < min_timings[consistent_hash_ref]
     # No significant difference expected for the current simple examples.
-    assert min_timings[consistent_hash] < min_timings[consistent_hash_ref2] * 1.3
-    assert min_timings[picklehash] < min_timings[consistent_hash_ref2] * 0.7
+    assert min_timings[consistent_hash] < min_timings[consistent_hash_ref2] * 1.5
+    assert min_timings[picklehash] < min_timings[consistent_hash_ref2] * 0.8
 
 
 def _sorted_any(values: Iterable[Any]) -> list[Any]:

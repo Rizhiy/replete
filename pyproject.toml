@@ -41,6 +41,7 @@ version_variable = "nt_utils/__init__.py:__version__"
 [tool.pytest.ini_options]
 minversion = "6.0"
 addopts = "--doctest-modules"
+asyncio_mode = "auto"
 
 [tool.mypy]
 files = ["."]
