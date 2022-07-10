@@ -5,7 +5,7 @@ import warnings
 
 import pytest
 
-from nt_utils.logging import change_root_level, warn_with_traceback
+from nt_utils.logging import change_logging_level, warn_with_traceback
 
 
 def test_warnings_traceback(capsys):
@@ -22,12 +22,12 @@ def test_warnings_traceback(capsys):
     assert captured.err == ""
 
 
-def test_change_root_level(caplog):
+def test_change_logging_level(caplog):
     caplog.set_level(logging.DEBUG)
     logging.basicConfig(level=logging.DEBUG)
     logger = logging.getLogger(__name__)
     logger.info("before")
-    with change_root_level(logging.WARNING):
+    with change_logging_level(logging.WARNING):
         logger.info("inside")
     logger.info("after")
     assert "before" in caplog.text
