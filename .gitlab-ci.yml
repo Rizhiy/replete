@@ -1,7 +1,6 @@
 ---
-include:
-  - project: neurotrade1/utils/nt-dev
-    file: nt_dev/release/gitlab-python-tests-basic.yml
+include: https://gitlab.com/api/v4/projects/41380302/repository/files/nt_dev%2Frelease%2Fgitlab-python-tests-basic.yml/raw?ref=master&private_token=glpat-GWQA6Tzi18AA8if744zg&what=.yml
+
 
 test-mypy:
   extends: .common__tests_frozen
