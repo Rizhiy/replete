@@ -1,6 +1,6 @@
 ---
 include:
-  - project: utilities/nt-dev
+  - project: neurotrade1/utils/nt-dev
     file: nt_dev/release/gitlab-python-tests-basic.yml
 
 test-mypy:
