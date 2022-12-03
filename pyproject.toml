@@ -45,3 +45,9 @@ asyncio_mode = "auto"
 
 [tool.mypy]
 files = ["."]
+
+[tool.flake8]
+per-file-ignores = [
+    "__init__.py:F401,F403,F405",
+    "tests/test_cli.py:W291",
+]

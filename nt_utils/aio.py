@@ -11,10 +11,10 @@ if TYPE_CHECKING:
     TLazyWrapValue = TypeVar("TLazyWrapValue")
 
 
-async def alist(aiter: AsyncIterable[T]) -> list[T]:
+async def alist(async_iter: AsyncIterable[T]) -> list[T]:
     """Simple gatherer of an async iterable into a list"""
     result = []
-    async for item in aiter:
+    async for item in async_iter:
         result.append(item)
     return result
 

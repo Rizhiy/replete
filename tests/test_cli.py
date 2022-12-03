@@ -56,14 +56,16 @@ usage: {MAIN_NAME} [-h] [--res-name RES_NAME] [--date DATE] [--items [ITEMS ...]
 """.strip(
     "\n"
 )
+# fmt: off
 OPTIONAL_HELP_TEXT = """
   --res-name RES_NAME                  Name for result (default: test)
-  --date DATE                          (default: None)
-  --items [ITEMS ...]                  (default: None)
-  --no-type-longname NO_TYPE_LONGNAME  (default: no type)
+  --date DATE                          
+  --items [ITEMS ...]                  
+  --no-type-longname NO_TYPE_LONGNAME
 """.strip(
     "\n"
 )
+# fmt: on
 
 BAD_ARGS_TEXT = f"""
 {POSITIONAL_USAGE_TEXT}
@@ -77,7 +79,7 @@ positional arguments:
   output_dir                           A dir
   no_help
 
-optional arguments:
+options:
   -h, --help                           show this help message and exit
 {OPTIONAL_HELP_TEXT}
 """
@@ -90,7 +92,7 @@ usage: {MAIN_NAME} [-h] [--output-dir OUTPUT_DIR] [--res-name RES_NAME] [--date 
 positional arguments:
   no_help
 
-optional arguments:
+options:
   -h, --help                           show this help message and exit
   --output-dir OUTPUT_DIR              A dir (default: provided out)
 {OPTIONAL_HELP_TEXT}
