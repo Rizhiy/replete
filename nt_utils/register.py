@@ -93,6 +93,10 @@ class Register:
         return cls._register_data[name]
 
     @classmethod
+    def get_all_subclases(cls) -> Iterable[type]:
+        return cls._register_data.values()
+
+    @classmethod
     def get_name_in_register(cls) -> str:
         return cls._name_in_register
 
