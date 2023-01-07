@@ -8,7 +8,7 @@ import pytest
 from nt_utils.register import Register
 
 
-@pytest.fixture(scope="function")
+@pytest.fixture()
 def base_class():
     class BaseClass(Register, base=True, abstract=True):
         pass
