@@ -42,3 +42,13 @@ def test_get_name_in_register(base_class: Type[Register]) -> None:
         pass
 
     assert SubClass.get_name_in_register() == "Sub"
+
+
+def test_check_double_register_error(base_class: Type[Register]) -> None:
+    class SubClass(base_class):
+        pass
+
+    with pytest.raises(KeyError):
+        # Comment here to satisfy formatter
+        class SubClass(base_class):  # noqa: F811
+            pass
