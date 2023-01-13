@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import datetime as dt
 import itertools
 from typing import TYPE_CHECKING, cast
 
@@ -97,51 +96,6 @@ def split_list(items: Iterable[TVal], condition: Callable[[TVal], bool]) -> tupl
         else:
             non_matching.append(item)
     return matching, non_matching
-
-
-def date_range(start: dt.date, stop: dt.date, step_days: int = 1) -> Iterable[dt.date]:
-    """
-    Simple `range`-like for `datetime.date`.
-
-    >>> list(date_range(dt.date(2019, 12, 29), dt.date(2020, 1, 3), 2))
-    [datetime.date(2019, 12, 29), datetime.date(2019, 12, 31), datetime.date(2020, 1, 2)]
-    >>> list(date_range(dt.date(2020, 1, 3), dt.date(2019, 12, 29), -2))
-    [datetime.date(2020, 1, 3), datetime.date(2020, 1, 1), datetime.date(2019, 12, 30)]
-    >>> list(date_range(dt.date(2020, 1, 3), dt.date(2019, 12, 29), 1))
-    []
-    >>> list(date_range(dt.date(2019, 12, 29), dt.date(2020, 1, 3), -1))
-    []
-    """
-    total_days = (stop - start).days
-    for step in range(0, total_days, step_days):
-        yield start + dt.timedelta(days=step)
-
-
-def datetime_range(start: dt.datetime, stop: dt.datetime | None, step: dt.timedelta) -> Iterable[dt.datetime]:
-    """
-    :param stop: can be `None` to make an infinite generator.
-    :param precise: use (slower) multiplication to avoid rounding errors.
-
-    >>> def _dts_s(dts):
-    ...     return [val.isoformat() for val in dts]
-    ...
-    >>> dt1 = dt.datetime(2022, 2, 2)
-    >>> dt2 = dt.datetime(2022, 2, 4)
-    >>> _dts_s(datetime_range(dt1, dt2, dt.timedelta(days=1)))
-    ['2022-02-02T00:00:00', '2022-02-03T00:00:00']
-    >>> _dts_s(datetime_range(dt1, dt2, dt.timedelta(hours=17)))
-    ['2022-02-02T00:00:00', '2022-02-02T17:00:00', '2022-02-03T10:00:00']
-    >>> _dts_s(datetime_range(dt1, dt2, dt.timedelta(seconds=11.11111111111)))[-1]
-    '2022-02-03T23:59:59.998272'
-    """
-    assert step, "must be non-zero"
-    forward = step > dt.timedelta()
-    current = start
-    while True:
-        if stop is not None and ((current >= stop) if forward else (current <= stop)):
-            return
-        yield current
-        current += step
 
 
 def ensure_unique_keys(items: Iterable[tuple[TKey, TVal]]) -> dict[TKey, TVal]:

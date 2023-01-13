@@ -9,6 +9,7 @@ readme = "README.md"
 requires-python = ">=3.8"
 dynamic = ["version", "description"]
 dependencies = [
+    "python-dateutil",
     "docstring-parser",
     "xxhash",
 ]
@@ -18,6 +19,7 @@ test = [
     "nt-dev>=0.34",
     "pytest-asyncio",
     "types-xxhash",
+    "types-python-dateutil",
 ]
 dev = [
     "nt-dev>=0.34",
