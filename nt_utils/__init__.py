@@ -8,4 +8,4 @@ from .logging import warn_with_traceback
 from .timer import Timer
 from .utils import chunks, deep_update, ensure_unique_keys, grouped, split_list
 
-__version__ = "1.9.1"
+__version__ = "1.10.0"
