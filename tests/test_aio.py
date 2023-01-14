@@ -5,7 +5,7 @@ import itertools
 
 import pytest
 
-from nt_utils.aio import LazyWrapAsync
+from nt_utils import LazyWrapAsync
 
 
 @pytest.mark.asyncio()

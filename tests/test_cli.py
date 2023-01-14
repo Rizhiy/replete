@@ -9,7 +9,8 @@ from typing import TYPE_CHECKING, NamedTuple, Optional
 
 import pytest
 
-from nt_utils.cli import AutoCLI, autocli
+from nt_utils import autocli
+from nt_utils.cli import AutoCLI
 
 if TYPE_CHECKING:
     from collections.abc import Generator, Sequence

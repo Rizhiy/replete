@@ -5,7 +5,7 @@ from typing import Type
 
 import pytest
 
-from nt_utils.register import Register
+from nt_utils import Register
 
 
 @pytest.fixture()

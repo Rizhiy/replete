@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import pytest
 
-from nt_utils.utils import ensure_unique_keys, split_list
+from nt_utils import ensure_unique_keys, split_list
 
 
 def test_unique_keys():

@@ -9,7 +9,8 @@ from typing import TYPE_CHECKING
 import pytest
 import xxhash
 
-from nt_utils import Timer, consistent_hash, grouped, picklehash
+from nt_utils import Timer, consistent_hash, grouped
+from nt_utils.consistent_hash import picklehash
 
 if TYPE_CHECKING:
     from collections.abc import Callable, Iterable, Sequence

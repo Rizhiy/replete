@@ -5,7 +5,8 @@ import warnings
 
 import pytest
 
-from nt_utils.logging import change_logging_level, warn_with_traceback
+from nt_utils import warn_with_traceback
+from nt_utils.logging import change_logging_level
 
 
 def test_warnings_traceback(capsys):
