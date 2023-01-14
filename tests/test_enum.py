@@ -37,3 +37,9 @@ def test_gt():
 
 def test_sort():
     assert sorted([SomeEnum.Three, SomeEnum.One, SomeEnum.Two]) == [SomeEnum.One, SomeEnum.Two, SomeEnum.Three]
+
+
+def test_hash():
+    assert hash(SomeEnum.One) == hash(SomeEnum.One)
+    assert hash(SomeEnum.One) != hash(SomeEnum.Two)
+    assert hash(SomeEnum.One) != hash(AnotherEnum.One)

@@ -12,3 +12,6 @@ class ComparableEnum(Enum):
         if other.__class__ is not self.__class__:
             raise NotImplementedError
         return self.value < other.value
+
+    def __hash__(self) -> int:
+        return super().__hash__() ^ hash(self.__class__)
