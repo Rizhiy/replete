@@ -19,8 +19,8 @@ class Comparable(Protocol):
 
     @abstractmethod
     def __eq__(self, other: Any) -> bool:
-        pass
+        """Compare two objects for equality"""
 
     @abstractmethod
     def __lt__(self: Cls, other: Cls) -> bool:
-        pass
+        """Compare two objects for less-than"""
