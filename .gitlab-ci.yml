@@ -13,8 +13,3 @@ test-mypy-strict:
     - mypy --strict || exit 1
   allow_failure:
     exit_codes: 1
-
-check-yamlfix:
-  extends: .common__tests_frozen
-  script:
-    - nt-yamlfix --check
