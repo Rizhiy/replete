@@ -20,6 +20,7 @@ test = [
     "pytest-asyncio",
     "types-xxhash",
     "types-python-dateutil",
+    "flaky",
 ]
 dev = [
     "nt-dev>=0.34",
@@ -41,8 +42,7 @@ exclude = [
 version_variable = "nt_utils/__init__.py:__version__"
 
 [tool.pytest.ini_options]
-minversion = "6.0"
-addopts = "--doctest-modules"
+addopts = "--doctest-modules --no-success-flaky-report"
 asyncio_mode = "auto"
 
 [tool.mypy]

@@ -1,8 +1,11 @@
 from __future__ import annotations
 
+import random
 import time
 
-from nt_utils import Timer
+from flaky import flaky
+
+from nt_utils import RateLimiter, Timer
 
 SLEEP_TIME = 0.001
 
@@ -39,3 +42,26 @@ def test_base_time_ratio():
     with Timer(base_time=1.0, include_sleep=True) as t:
         time.sleep(SLEEP_TIME)
     assert t.base_time_ratio < ratio / 10
+
+
+@flaky
+def test_rate_limiter_weight():
+    rate_limiter = RateLimiter(20, period_length=0.2)
+
+    weights = [random.randint(3, 7) for _ in range(20)]
+    with Timer(include_sleep=True) as t:
+        for weight in weights:
+            rate_limiter.check_rate(weight)
+    # To make this test run fast, we allow some error in the rate
+    assert t.time / 1.1 < (sum(weights) - 20) / 100 < t.time * 1.1
+
+
+@flaky
+def test_rate_limiter_num_calls():
+    rate_limiter = RateLimiter(100, 5, 0.1)
+
+    weights = [1] * 10
+    with Timer(include_sleep=True) as t:
+        for weight in weights:
+            rate_limiter.check_rate(weight)
+    assert t.time / 1.1 < 0.2 - 0.1 < t.time * 1.1
