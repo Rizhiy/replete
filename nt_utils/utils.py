@@ -4,8 +4,6 @@ import itertools
 from concurrent import futures
 from typing import TYPE_CHECKING, Any, Callable, Hashable, Iterable, Iterator, Mapping, Sequence, TypeVar, cast
 
-from tqdm import tqdm
-
 from nt_utils.abc import Comparable
 
 if TYPE_CHECKING:
@@ -185,11 +183,7 @@ def bisect_right(
 
 
 def futures_processing(
-    func: Callable,
-    args_list: list[tuple] = None,
-    kwargs_list: list[dict] = None,
-    max_workers: int = None,
-    desc: str = None,
+    func: Callable, args_list: list[tuple] = None, kwargs_list: list[dict] = None, max_workers: int = None
 ) -> Iterator:
     """Process data concurrently"""
     if args_list is None and kwargs_list is None:
@@ -209,7 +203,7 @@ def futures_processing(
 
         cache_results = {}
         current_result_idx = 0
-        for future in tqdm(futures.as_completed(results), total=len(results), desc=desc):
+        for future in futures.as_completed(results):
             if future.exception():
                 raise future.exception()
             idx, func_result = future.result()
