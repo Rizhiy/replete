@@ -43,31 +43,35 @@ class Timer:
 
 
 class RateLimiter:
-    def __init__(self, max_weight: float, max_calls=None, period_length=1) -> None:
+    def __init__(self, max_weight: float = None, max_calls: int = None, period_seconds: float = 1) -> None:
         self._max_weight = max_weight
         self._max_calls = max_calls
-        self._period_seconds = period_length
+        self._period_seconds = period_seconds
         self._wait_lock = Lock()
         self._calls = deque()
+
+    @property
+    def _stale_time(self) -> float:
+        return time.time() - self._period_seconds
 
     def check_rate(self, weight: float) -> None:
         with self._wait_lock:
             while not self._check_all():
-                time.sleep(self._calls[0][1] - (time.time() - self._period_seconds))
+                # Time until earliest call in window is stale
+                time_to_sleep = self._calls[0][1] - self._stale_time
+                if time_to_sleep > 0:
+                    time.sleep(time_to_sleep)
             self._calls.append((weight, time.time()))
 
-    def _weight_left(self) -> float:
-        return self._max_weight - sum(c[0] for c in self._calls)
-
     def _clean_calls(self) -> None:
-        while self._calls and self._calls[0][1] < time.time() - self._period_seconds:
+        while self._calls and self._calls[0][1] < self._stale_time:
             self._calls.popleft()
 
     def _check_calls(self) -> bool:
         return len(self._calls) < self._max_calls if self._max_calls else True
 
     def _check_weight(self) -> bool:
-        return self._weight_left() > 0
+        return sum(c[0] for c in self._calls) < self._max_weight if self._max_weight else True
 
     def _check_all(self) -> bool:
         self._clean_calls()
