@@ -46,7 +46,7 @@ def test_base_time_ratio():
 
 @flaky
 def test_rate_limiter_weight():
-    rate_limiter = RateLimiter(20, period_length=0.2)
+    rate_limiter = RateLimiter(20, period_seconds=0.2)
 
     weights = [random.randint(3, 7) for _ in range(20)]
     with Timer(include_sleep=True) as t:
