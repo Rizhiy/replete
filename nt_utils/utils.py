@@ -1,14 +1,14 @@
 from __future__ import annotations
 
 import itertools
-from typing import TYPE_CHECKING, cast
+from concurrent import futures
+from typing import TYPE_CHECKING, Any, Callable, Hashable, Iterable, Iterator, Mapping, Sequence, TypeVar, cast
+
+from tqdm import tqdm
+
+from nt_utils.abc import Comparable
 
 if TYPE_CHECKING:
-    from collections.abc import Callable, Hashable, Iterable, Iterator, Mapping, Sequence
-    from typing import Any, TypeVar
-
-    from nt_utils.abc import Comparable
-
     TKey = TypeVar("TKey", bound=Hashable)
     TVal = TypeVar("TVal")
     # For `sort`-like `key=...` argument:
@@ -108,7 +108,7 @@ def ensure_unique_keys(items: Iterable[tuple[TKey, TVal]]) -> dict[TKey, TVal]:
     return result
 
 
-def deep_update(target: dict[Any, Any], updates: Mapping[Any, Any]) -> dict[Any, Any]:
+def deep_update(target: dict, updates: Mapping) -> dict:
     """
     >>> target = dict(a=1, b=dict(c=2, d=dict(e="f", g="h"), i=dict(j="k")))
     >>> updates = dict(i="i", j="j", b=dict(c=dict(c2="c2"), d=dict(e="f2")))
@@ -182,3 +182,38 @@ def bisect_right(
         else:
             left = middle + 1
     return left
+
+
+def futures_processing(
+    func: Callable,
+    args_list: list[tuple] = None,
+    kwargs_list: list[dict] = None,
+    max_workers: int = None,
+    desc: str = None,
+) -> Iterator:
+    """Process data concurrently"""
+    if args_list is None and kwargs_list is None:
+        raise ValueError("Must provide either args_list or kwargs_list")
+    if args_list is None:
+        args_list = [()] * len(kwargs_list)
+    if kwargs_list is None:
+        kwargs_list = [{}] * len(args_list)
+    assert len(args_list) == len(kwargs_list), "args_list and kwargs_list must be the same length"
+
+    def func_with_idx(idx, *args, **kwargs) -> tuple[int, Any]:
+        return idx, func(*args, **kwargs)
+
+    with futures.ThreadPoolExecutor(max_workers=max_workers) as executor:
+        idx_args_gen = enumerate(zip(args_list, kwargs_list))
+        results = [executor.submit(func_with_idx, idx, *args, **kwargs) for idx, (args, kwargs) in idx_args_gen]
+
+        cache_results = {}
+        current_result_idx = 0
+        for future in tqdm(futures.as_completed(results), total=len(results), desc=desc):
+            if future.exception():
+                raise future.exception()
+            idx, func_result = future.result()
+            cache_results[idx] = func_result
+            while current_result_idx in cache_results:
+                yield cache_results.pop(current_result_idx)
+                current_result_idx += 1
