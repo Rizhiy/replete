@@ -1,10 +1,13 @@
 from __future__ import annotations
 
 import itertools
+import logging
 from concurrent import futures
 from typing import TYPE_CHECKING, Any, Callable, Hashable, Iterable, Iterator, Mapping, Sequence, TypeVar, cast
 
 from nt_utils.abc import Comparable
+
+LOGGER = logging.getLogger(__name__)
 
 if TYPE_CHECKING:
     TKey = TypeVar("TKey", bound=Hashable)
@@ -183,7 +186,11 @@ def bisect_right(
 
 
 def futures_processing(
-    func: Callable, args_list: list[tuple] = None, kwargs_list: list[dict] = None, max_workers: int = None
+    func: Callable,
+    args_list: list[tuple] = None,
+    kwargs_list: list[dict] = None,
+    max_workers: int = None,
+    in_order=False,
 ) -> Iterator:
     """Process data concurrently"""
     if args_list is None and kwargs_list is None:
@@ -195,7 +202,11 @@ def futures_processing(
     assert len(args_list) == len(kwargs_list), "args_list and kwargs_list must be the same length"
 
     def func_with_idx(idx, *args, **kwargs) -> tuple[int, Any]:
-        return idx, func(*args, **kwargs)
+        try:
+            return idx, func(*args, **kwargs)
+        except Exception:
+            LOGGER.exception(f"Exception in processing {func} with args {args} and kwargs {kwargs}")
+            return idx, None
 
     with futures.ThreadPoolExecutor(max_workers=max_workers) as executor:
         idx_args_gen = enumerate(zip(args_list, kwargs_list))
@@ -204,10 +215,11 @@ def futures_processing(
         cache_results = {}
         current_result_idx = 0
         for future in futures.as_completed(results):
-            if future.exception():
-                raise future.exception()
             idx, func_result = future.result()
-            cache_results[idx] = func_result
-            while current_result_idx in cache_results:
-                yield cache_results.pop(current_result_idx)
-                current_result_idx += 1
+            if in_order:
+                cache_results[idx] = func_result
+                while current_result_idx in cache_results:
+                    yield cache_results.pop(current_result_idx)
+                    current_result_idx += 1
+            else:
+                yield func_result
