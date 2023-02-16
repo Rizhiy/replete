@@ -54,7 +54,7 @@ class RateLimiter:
     def _stale_time(self) -> float:
         return time.time() - self._period_seconds
 
-    def check_rate(self, weight: float) -> None:
+    def check_rate(self, weight: float = 1) -> None:
         with self._wait_lock:
             while not self._check_all():
                 # Time until earliest call in window is stale
