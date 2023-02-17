@@ -24,9 +24,9 @@ pip install -e '.[dev,tests]'
 
 This repository follows strict formatting style which will be checked by the CI.
 
-To properly format the code, use the `nt-tools` package:
+To properly format the code, use the `nt-dev` package:
 ```bash
-pip install nt-tools
+pip install nt-dev
 nt-format
 ```
 
