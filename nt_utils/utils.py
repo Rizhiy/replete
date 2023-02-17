@@ -191,6 +191,7 @@ def futures_processing(
     kwargs_list: list[dict] = None,
     max_workers: int = None,
     in_order=False,
+    only_log_exceptions=False,
 ) -> Iterator:
     """Process data concurrently"""
     if args_list is None and kwargs_list is None:
@@ -206,7 +207,9 @@ def futures_processing(
             return idx, func(*args, **kwargs)
         except Exception:
             LOGGER.exception(f"Exception in processing {func} with args {args} and kwargs {kwargs}")
-            return idx, None
+            if only_log_exceptions:
+                return idx, None
+            raise
 
     with futures.ThreadPoolExecutor(max_workers=max_workers) as executor:
         idx_args_gen = enumerate(zip(args_list, kwargs_list))
@@ -215,6 +218,8 @@ def futures_processing(
         cache_results = {}
         current_result_idx = 0
         for future in futures.as_completed(results):
+            if future.exception():
+                raise future.exception()
             idx, func_result = future.result()
             if in_order:
                 cache_results[idx] = func_result
