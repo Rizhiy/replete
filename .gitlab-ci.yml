@@ -5,10 +5,3 @@ test-mypy:
   extends: .common__tests_frozen
   script:
     - nt-mypy
-
-test-mypy-strict:
-  extends: .common__tests_frozen
-  script:
-    - mypy --strict || exit 1
-  allow_failure:
-    exit_codes: 1
