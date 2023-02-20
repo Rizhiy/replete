@@ -12,6 +12,7 @@ dependencies = [
     "python-dateutil",
     "docstring-parser",
     "xxhash",
+    "coloredlogs",
 ]
 
 [project.optional-dependencies]
