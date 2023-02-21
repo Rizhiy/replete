@@ -6,8 +6,8 @@ from pathlib import Path
 
 import pytest
 
-from nt_utils import warn_with_traceback
-from nt_utils.logging import assert_with_logging, change_logging_level, offset_logger_level, setup_logging
+from nt_utils import assert_with_logging, setup_logging, warn_with_traceback
+from nt_utils.logging import change_logging_level, offset_logger_level
 
 
 def test_warnings_traceback(capsys):
