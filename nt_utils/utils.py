@@ -1,7 +1,9 @@
 from __future__ import annotations
 
+import functools
 import itertools
 import logging
+import weakref
 from concurrent import futures
 from typing import TYPE_CHECKING, Any, Callable, Hashable, Iterable, Iterator, Mapping, Sequence, TypeVar, cast
 
@@ -228,3 +230,26 @@ def futures_processing(
                     current_result_idx += 1
             else:
                 yield func_result
+
+
+def weak_lru_cache(maxsize=128, typed=False):
+    """LRU Cache decorator that keeps a weak reference to 'self'"""
+
+    def helper(maxsize: int, typed: bool, user_function: Callable) -> Callable:
+        @functools.lru_cache(maxsize, typed)
+        def _func(_self, *args, **kwargs):
+            return user_function(_self(), *args, **kwargs)
+
+        @functools.wraps(user_function)
+        def inner(self, *args, **kwargs):
+            return _func(weakref.ref(self), *args, **kwargs)
+
+        return inner
+
+    if callable(maxsize) and isinstance(typed, bool):
+        # The user_function was passed in directly via the maxsize argument
+        user_function, maxsize = maxsize, 128
+        return helper(maxsize, typed, user_function)
+    assert type(maxsize) == int or maxsize is None, "Expected maxsize to be an integer or None"
+
+    return functools.partial(helper, maxsize, typed)

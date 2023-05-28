@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import gc
 import random
 import re
 import time
@@ -7,7 +8,7 @@ import time
 import pytest
 
 from nt_utils import Timer, ensure_unique_keys, split_list
-from nt_utils.utils import futures_processing
+from nt_utils.utils import futures_processing, weak_lru_cache
 
 
 def test_unique_keys():
@@ -77,3 +78,49 @@ def test_futures_processing_with_error_log(caplog):
     list(futures_processing(func, [()], only_log_exceptions=True))
     assert re.search(r"Exception in processing .* with args .* and kwargs", caplog.text) is not None
     assert re.search(r"ValueError: foo", caplog.text) is not None
+
+
+class WeakCacheTester:
+    @weak_lru_cache
+    def add_one(self, x: int) -> int:
+        time.sleep(0.1)
+        return x + 1
+
+    @weak_lru_cache()
+    def add_two(self, x: int) -> int:
+        time.sleep(0.1)
+        return x + 1
+
+    @weak_lru_cache(maxsize=0)
+    def add_bad(self, x: int) -> int:
+        time.sleep(0.1)
+        return x + 1
+
+
+def test_weak_lru_cache():
+    foo = WeakCacheTester()
+    assert foo.add_one(10) == 11
+    with Timer(include_sleep=True) as timer:
+        foo.add_one(10)
+    assert timer.time < 0.1
+
+    foo.add_two(10)
+    with Timer(include_sleep=True) as timer:
+        foo.add_two(10)
+    assert timer.time < 0.1
+
+    foo.add_bad(10)
+    with Timer(include_sleep=True) as timer:
+        foo.add_bad(10)
+    assert timer.time > 0.1
+
+
+def test_weak_lru_cache_gc():
+    def func() -> None:
+        foo = WeakCacheTester()
+        foo.add_one(10)
+
+    func()
+    gc.collect()  # collect garbage
+    # Since f went out of scope after func() finished, it should be garbage collected
+    assert len([obj for obj in gc.get_objects() if isinstance(obj, WeakCacheTester)]) == 0

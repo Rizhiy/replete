@@ -24,7 +24,7 @@ test = [
     "flaky",
 ]
 dev = [
-    "nt-dev>=0.34",
+    "nt-utils[test]",
 ]
 
 [tool.flit.module]
