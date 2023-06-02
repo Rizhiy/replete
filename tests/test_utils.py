@@ -100,17 +100,17 @@ class WeakCacheTester:
 def test_weak_lru_cache():
     foo = WeakCacheTester()
     assert foo.add_one(10) == 11
-    with Timer(include_sleep=True) as timer:
+    with Timer() as timer:
         foo.add_one(10)
     assert timer.time < 0.1
 
     foo.add_two(10)
-    with Timer(include_sleep=True) as timer:
+    with Timer() as timer:
         foo.add_two(10)
     assert timer.time < 0.1
 
     foo.add_bad(10)
-    with Timer(include_sleep=True) as timer:
+    with Timer() as timer:
         foo.add_bad(10)
     assert timer.time > 0.1
 
