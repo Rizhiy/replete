@@ -101,11 +101,8 @@ class FilterWhitelist(logging.Filter):
         super().__init__()
         self._allowed_modules = allowed_modules
 
-    def filter(self, record: logging.LogRecord) -> bool:
-        for module in self._allowed_modules:
-            if module == record.name[: len(module)]:
-                return True
-        return False
+    def filter(self, record: logging.LogRecord) -> bool:  # noqa: A003
+        return any(module == record.name[: len(module)] for module in self._allowed_modules)
 
 
 def setup_logging(
@@ -146,7 +143,10 @@ def setup_logging(
     if log_file is not None:
         handlers.append(get_file_handler(log_file, append=append, use_year=use_year))
 
-    logging.basicConfig(level=logging.DEBUG, handlers=handlers)
+    root_logger = logging.getLogger()
+    root_logger.level = 0
+    root_logger.handlers.extend(handlers)
+
     if whitelist:
         for handler in handlers:
             handler.addFilter(FilterWhitelist(whitelist))
