@@ -96,6 +96,18 @@ def excepthook(*args):
     logging.error("Uncaught exception:\n" + "".join(format_exception(*args)))
 
 
+class FilterWhitelist(logging.Filter):
+    def __init__(self, allowed_modules: list[str]) -> None:
+        super().__init__()
+        self._allowed_modules = allowed_modules
+
+    def filter(self, record: logging.LogRecord) -> bool:
+        for module in self._allowed_modules:
+            if module == record.name[: len(module)]:
+                return True
+        return False
+
+
 def setup_logging(
     log_file: Path = None,
     print_level: int | str = logging.INFO,
@@ -105,6 +117,7 @@ def setup_logging(
     disable_colors=False,
     log_uncaught_exceptions=True,
     use_year=False,
+    whitelist: list[str] = None,
 ):
     """
     Make logging nice
@@ -116,6 +129,7 @@ def setup_logging(
     :param disable_colors: Disable colors in stdout
     :param log_uncaught_exceptions: Add uncaught exceptions to the log, not guaranteed
     :param use_year: Add year to logs
+    :param whitelist: Only log these modules
     """
     if isinstance(print_level, str):
         print_level = int(print_level) if print_level.isdigit() else getattr(logging, print_level)
@@ -133,6 +147,9 @@ def setup_logging(
         handlers.append(get_file_handler(log_file, append=append, use_year=use_year))
 
     logging.basicConfig(level=logging.DEBUG, handlers=handlers)
+    if whitelist:
+        for handler in handlers:
+            handler.addFilter(FilterWhitelist(whitelist))
 
     if log_uncaught_exceptions:
         sys.excepthook = excepthook
