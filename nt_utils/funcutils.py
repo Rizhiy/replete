@@ -1,17 +1,15 @@
 from __future__ import annotations
 
+import logging
 import operator
-from collections.abc import Callable
-from typing import TYPE_CHECKING, TypeVar, cast, overload
+from typing import TYPE_CHECKING, Callable, Iterable, Iterator, Type, TypeVar, cast, overload
 
 if TYPE_CHECKING:
-    from collections.abc import Iterable
-
     TRightDefault = TypeVar("TRightDefault")
-
-
 TLeft = TypeVar("TLeft")
 TRight = TypeVar("TRight")
+
+LOGGER = logging.getLogger(__name__)
 
 
 class Marker:
@@ -139,3 +137,15 @@ def join_backfill(
         while right_item is not right_done_marker and not condition(left_item, cast(TRight, right_item)):
             right_item = next(right_iter, right_done_marker)
         yield left_item, default if right_item is right_done_marker else cast(TRight, right_item)
+
+
+def yield_or_skip(iter_: Iterable, func: Callable, skip_on_errors: Iterable[Type[Exception]]) -> Iterator:
+    skip_on_errors = tuple(skip_on_errors)
+    for item in iter_:
+        try:
+            yield func(item)
+        except Exception as e:
+            if isinstance(e, skip_on_errors):
+                LOGGER.debug(f"Skipping {item} due to {e}")
+                continue
+            raise
