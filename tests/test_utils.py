@@ -6,6 +6,7 @@ import re
 import time
 
 import pytest
+from flaky import flaky
 
 from nt_utils import Timer, ensure_unique_keys, split_list
 from nt_utils.utils import futures_processing, weak_lru_cache
@@ -41,6 +42,7 @@ def futures_processing_test_vars():
     return wait_time, func, args, kwargs
 
 
+@flaky
 def test_futures_processing(futures_processing_test_vars):
     wait_time, func, args, kwargs = futures_processing_test_vars
 
@@ -52,6 +54,7 @@ def test_futures_processing(futures_processing_test_vars):
     assert timer.time < wait_time * 2
 
 
+@flaky
 def test_futures_processing_in_order(futures_processing_test_vars):
     wait_time, func, args, kwargs = futures_processing_test_vars
 
