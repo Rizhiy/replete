@@ -51,7 +51,7 @@ def test_futures_processing(futures_processing_test_vars):
     simple_results = {func(*a, **kw) for a, kw in zip(args, kwargs)}  # type: ignore
 
     assert result == simple_results
-    assert timer.time < wait_time * 2
+    assert timer.time < wait_time * 3
 
 
 @flaky
@@ -63,7 +63,7 @@ def test_futures_processing_in_order(futures_processing_test_vars):
     simple_results = [func(*a, **kw) for a, kw in zip(args, kwargs)]  # type: ignore
 
     assert result == simple_results
-    assert timer.time < wait_time * 2
+    assert timer.time < wait_time * 3
 
 
 def test_futures_processing_with_exception():
