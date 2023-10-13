@@ -92,16 +92,24 @@ def get_logging_formatter(
     return ColoredFormatter(fmt, style="{", datefmt=date_fmt, level_styles=level_styles, field_styles=field_styles)
 
 
-def excepthook(*args):
-    logging.error("Uncaught exception:\n" + "".join(format_exception(*args)))
+# https://stackoverflow.com/a/16993115/2059584
+def handle_exception(exc_type, exc_value, exc_traceback):
+    if issubclass(exc_type, KeyboardInterrupt):
+        sys.__excepthook__(exc_type, exc_value, exc_traceback)
+        return
+
+    logging.critical("Uncaught exception", exc_info=(exc_type, exc_value, exc_traceback))
 
 
 class FilterWhitelist(logging.Filter):
     def __init__(self, allowed_modules: list[str]) -> None:
         super().__init__()
+        allowed_modules.extend(["root", "__main__"])
         self._allowed_modules = allowed_modules
 
     def filter(self, record: logging.LogRecord) -> bool:  # noqa: A003
+        if record.levelno > logging.WARNING:
+            return True
         return any(module == record.name[: len(module)] for module in self._allowed_modules)
 
 
@@ -152,4 +160,4 @@ def setup_logging(
             handler.addFilter(FilterWhitelist(whitelist))
 
     if log_uncaught_exceptions:
-        sys.excepthook = excepthook
+        sys.excepthook = handle_exception
