@@ -11,11 +11,9 @@ if TYPE_CHECKING:
 Cls = typing.TypeVar("Cls", bound="Comparable")
 
 
+# https://github.com/python/typing/issues/59#issuecomment-353878355
 class Comparable(Protocol):
-    """
-    For details, see
-    https://github.com/python/typing/issues/59#issuecomment-353878355
-    """
+    """Type annotation for comparable objects"""
 
     @abstractmethod
     def __eq__(self, other: Any) -> bool:

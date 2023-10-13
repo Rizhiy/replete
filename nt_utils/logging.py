@@ -5,7 +5,6 @@ import sys
 import traceback
 import warnings
 from pathlib import Path
-from traceback import format_exception
 from typing import Any
 
 from coloredlogs import DEFAULT_FIELD_STYLES, DEFAULT_LEVEL_STYLES, ColoredFormatter

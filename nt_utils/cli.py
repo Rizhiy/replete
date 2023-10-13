@@ -53,9 +53,9 @@ def pairs_to_dict(
 
 
 def parse_bool(value: str) -> bool:
-    if value in ("true", "True", "TRUE"):
+    if value.lower() == "true":
         return True
-    if value in ("false", "False", "FALSE"):
+    if value.lower() == "false":
         return False
     raise ValueError(f"Not a valid bool: {value!r}; must be `true` or `false`")
 
