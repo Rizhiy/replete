@@ -129,64 +129,6 @@ def deep_update(target: dict, updates: Mapping) -> dict:
     return target
 
 
-def bisect_left(
-    data: Sequence[TSourceVal],
-    value: TCmpVal,
-    lo: int = 0,
-    hi: int | None = None,
-    key: TSortKey[TSourceVal, TCmpVal] | None = None,
-) -> int:
-    """
-    `bisect.bisect_left` with the additional `key` support.
-
-    >>> data = [dict(val=val) for val in [2, 4, 8, 8, 10, 12]]
-    >>> values = list(range(14))
-    >>> [bisect_left(data, val, key=lambda item: item["val"]) for val in values]
-    [0, 0, 0, 1, 1, 2, 2, 2, 2, 4, 4, 5, 5, 6]
-    """
-    assert lo >= 0
-    if key is None:
-        key = lambda val: cast(TCmpVal, val)
-    left = lo
-    right = len(data) if hi is None else hi
-    while left < right:
-        middle = (left + right) // 2
-        if key(data[middle]) < value:
-            left = middle + 1
-        else:
-            right = middle
-    return left
-
-
-def bisect_right(
-    data: Sequence[TSourceVal],
-    value: TCmpVal,
-    lo: int = 0,
-    hi: int | None = None,
-    key: TSortKey[TSourceVal, TCmpVal] | None = None,
-) -> int:
-    """
-    `bisect.bisect_right` with the additional `key` support.
-
-    >>> data = [dict(val=val) for val in [2, 4, 8, 8, 10, 12]]
-    >>> values = list(range(14))
-    >>> [bisect_right(data, val, key=lambda item: item["val"]) for val in values]
-    [0, 0, 1, 1, 2, 2, 2, 2, 4, 4, 5, 5, 6, 6]
-    """
-    assert lo >= 0
-    if key is None:
-        key = lambda val: cast(TCmpVal, val)
-    left = lo
-    right = len(data) if hi is None else hi
-    while left < right:
-        middle = (left + right) // 2
-        if value < key(data[middle]):
-            right = middle
-        else:
-            left = middle + 1
-    return left
-
-
 def futures_processing(
     func: Callable,
     args_list: list[tuple] = None,
