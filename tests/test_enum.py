@@ -4,7 +4,7 @@ from enum import auto
 
 import pytest
 
-from nt_utils import ComparableEnum
+from replete import ComparableEnum
 
 
 class SomeEnum(ComparableEnum):

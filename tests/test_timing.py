@@ -5,7 +5,7 @@ import time
 
 from flaky import flaky
 
-from nt_utils import RateLimiter, Timer
+from replete import RateLimiter, Timer
 
 SLEEP_TIME = 0.001
 

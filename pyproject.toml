@@ -12,7 +12,7 @@ dynamic = ["description", "version"]
 dependencies = ["coloredlogs", "docstring-parser", "python-dateutil", "xxhash"]
 
 [project.optional-dependencies]
-test = ["flaky", "pytest", "pytest-asyncio", "types-python-dateutil", "types-xxhash"]
+test = ["flaky", "pytest", "pytest-asyncio", "pytest-coverage", "types-python-dateutil", "types-xxhash"]
 dev = ["black", "replete[test]", "ruff"]
 
 [tool.flit.sdist]

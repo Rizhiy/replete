@@ -8,8 +8,8 @@ import time
 import pytest
 from flaky import flaky
 
-from nt_utils import Timer, ensure_unique_keys, split_list
-from nt_utils.utils import futures_processing, weak_lru_cache
+from replete import Timer, ensure_unique_keys, split_list
+from replete.utils import futures_processing, weak_lru_cache
 
 
 def test_unique_keys():

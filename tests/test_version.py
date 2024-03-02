@@ -1,7 +1,7 @@
 from __future__ import annotations
 
-import nt_utils
+import replete
 
 
 def test_version() -> None:
-    assert nt_utils.__version__
+    assert replete.__version__
