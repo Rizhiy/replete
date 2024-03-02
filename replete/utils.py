@@ -7,7 +7,7 @@ import weakref
 from concurrent import futures
 from typing import TYPE_CHECKING, Any, Callable, Hashable, Iterable, Iterator, Mapping, Sequence, TypeVar, cast
 
-from nt_utils.abc import Comparable
+from replete.abc import Comparable
 
 LOGGER = logging.getLogger(__name__)
 
