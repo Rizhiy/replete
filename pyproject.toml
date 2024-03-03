@@ -12,7 +12,7 @@ dynamic = ["description", "version"]
 dependencies = ["coloredlogs", "docstring-parser", "python-dateutil", "xxhash"]
 
 [project.optional-dependencies]
-testing = ["pytest", "pyyaml"]
+testing = ["pytest<8", "pyyaml"]
 test = ["flaky", "pytest", "pytest-asyncio", "pytest-coverage", "replete[testing]", "types-python-dateutil", "types-xxhash"]
 dev = ["replete[test]", "ruff"]
 
