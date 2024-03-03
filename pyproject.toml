@@ -20,7 +20,7 @@ include = ["README.md"]
 exclude = [".github", ".gitignore", "tests/*"]
 
 [tool.semantic_release]
-version_variable = "replete/__init__.py:__version__"
+version_variables = ["replete/__init__.py:__version__"]
 
 [tool.pytest.ini_options]
 minversion = "6.0"
