@@ -57,7 +57,7 @@ def consistent_hash_ref(*args: Any, **kwargs: Any) -> int:
     for param in params:
         if isinstance(param, Mapping):
             hashes.append(consistent_hash(**{str(key): value for key, value in param.items()}))
-        elif isinstance(param, (list, tuple)):
+        elif isinstance(param, list | tuple):
             hashes.append(consistent_hash(*param))
         else:
             hashes.append(repr(param))
@@ -77,7 +77,7 @@ def consistent_hash_ref2_raw(args: Sequence[Any] = (), kwargs: dict[str, Any] | 
         elif isinstance(param, Mapping):
             rec = consistent_hash_ref2_raw((), {str(key): value for key, value in param.items()})
             hasher.update(rec.digest())
-        elif isinstance(param, (list, tuple)):
+        elif isinstance(param, list | tuple):
             rec = consistent_hash_ref2_raw(param)
             hasher.update(rec.digest())
         else:

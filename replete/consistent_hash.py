@@ -63,7 +63,7 @@ def consistent_hash_raw_update(
             param_items = sorted((str(key), value) for key, value in param.items())
             hasher.update(b"\x04")
             consistent_hash_raw_update(hasher, param_items)
-        elif param_type is list or param_type is tuple or isinstance(param, (list, tuple)):
+        elif param_type is list or param_type is tuple or isinstance(param, list | tuple):
             hasher.update(b"\x05")
             consistent_hash_raw_update(hasher, param)
         else:
@@ -94,7 +94,7 @@ def _normalize(value: Any) -> Any:
     chashmeth = getattr(value, "consistent_hash", None)
     if chashmeth is not None and getattr(chashmeth, "__self__", None) is not None:
         return chashmeth()  # Note: makes the result type-independent.
-    if value_type is list or value_type is tuple or isinstance(value, (list, tuple)):
+    if value_type is list or value_type is tuple or isinstance(value, list | tuple):
         return [_normalize(subvalue) for subvalue in value]
     if value_type is dict or isinstance(value, collections.abc.Mapping):
         res_value = [(str(subkey), _normalize(subvalue)) for subkey, subvalue in value.items()]

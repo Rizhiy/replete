@@ -48,7 +48,7 @@ def test_futures_processing(futures_processing_test_vars):
 
     with Timer() as timer:
         result = set(futures_processing(func, args, kwargs))  # type: ignore
-    simple_results = {func(*a, **kw) for a, kw in zip(args, kwargs)}  # type: ignore
+    simple_results = {func(*a, **kw) for a, kw in zip(args, kwargs, strict=False)}  # type: ignore
 
     assert result == simple_results
     assert timer.time < wait_time * 3
@@ -60,7 +60,7 @@ def test_futures_processing_in_order(futures_processing_test_vars):
 
     with Timer() as timer:
         result = list(futures_processing(func, args, kwargs, in_order=True))  # type: ignore
-    simple_results = [func(*a, **kw) for a, kw in zip(args, kwargs)]  # type: ignore
+    simple_results = [func(*a, **kw) for a, kw in zip(args, kwargs, strict=False)]  # type: ignore
 
     assert result == simple_results
     assert timer.time < wait_time * 3

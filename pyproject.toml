@@ -7,7 +7,7 @@ name = "replete"
 maintainers = [{ name = "Artem Vasenin", email = "vasart169@gmail.com" }]
 authors = [{ name = "Anton Vasilev" }, { name = "Artem Vasenin" }]
 readme = "README.md"
-requires-python = ">=3.9"
+requires-python = ">=3.10"
 dynamic = ["description", "version"]
 dependencies = ["coloredlogs", "docstring-parser", "python-dateutil", "xxhash"]
 
@@ -36,7 +36,7 @@ strictParameterNoneValue = false
 typeCheckingMode = "basic"
 
 [tool.ruff]
-target-version = "py39"
+target-version = "py310"
 line-length = 120
 [tool.ruff.lint]
 preview = true
@@ -45,17 +45,17 @@ fixable = ["ALL"]
 ignore = ["A003", "E203", "FIX002", "FURB113", "N817", "PTH123", "RET503", "S113", "TD002", "TD003", "TRY003", "UP007", "UP035"]
 [tool.ruff.lint.per-file-ignores]
 "**/__init__.py" = [
-  "F401", # Allow unused imports in module files
+    "F401", # Allow unused imports in module files
 ]
 "tests/test_cli.py" = [
-  "W291", # Need to ignore it for correct formatting
+    "W291", # Need to ignore it for correct formatting
 ]
 "tests/**/*.py" = [
-  "E501",   # Test strings can be long
-  "FBT001", # We don't expect to call the tests
-  "S101",   # Asserts in tests are fine
-  "T201",   # Prints are useful for debugging
-  "TCH001",
-  "TCH002",
-  "TCH003", # Tests don't need to be super performant, prefer simpler code
+    "E501",   # Test strings can be long
+    "FBT001", # We don't expect to call the tests
+    "S101",   # Asserts in tests are fine
+    "T201",   # Prints are useful for debugging
+    "TCH001",
+    "TCH002",
+    "TCH003", # Tests don't need to be super performant, prefer simpler code
 ]

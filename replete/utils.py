@@ -156,7 +156,7 @@ def futures_processing(
             raise
 
     with futures.ThreadPoolExecutor(max_workers=max_workers) as executor:
-        idx_args_gen = enumerate(zip(args_list, kwargs_list))
+        idx_args_gen = enumerate(zip(args_list, kwargs_list, strict=False))
         results = [executor.submit(func_with_idx, idx, *args, **kwargs) for idx, (args, kwargs) in idx_args_gen]
 
         cache_results = {}
