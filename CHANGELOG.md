@@ -2,6 +2,21 @@
 
 
 
+## v2.1.0 (2024-03-03)
+
+### Ci
+
+* ci: fix coverage ([`0e368ab`](https://github.com/Rizhiy/replete/commit/0e368ab9ebede394fe8b29ec4e94ad1745b3086c))
+
+### Feature
+
+* feat: add a few useful pytest fixtures ([`ac2c381`](https://github.com/Rizhiy/replete/commit/ac2c38172ea695a04553b80efa96bcb313ccc137))
+
+### Fix
+
+* fix: rstrict pytest version to &lt;8 ([`5077b5b`](https://github.com/Rizhiy/replete/commit/5077b5b2e53316ad384c0df4a08266f7b6929d02))
+
+
 ## v2.0.1 (2024-03-03)
 
 ### Documentation

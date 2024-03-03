@@ -12,4 +12,4 @@ from .register import Register
 from .timing import RateLimiter, Timer
 from .utils import chunks, deep_update, ensure_unique_keys, grouped, split_list
 
-__version__ = "2.0.1"
+__version__ = "2.1.0"
