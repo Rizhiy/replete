@@ -22,6 +22,8 @@ BREAKING CHANGE: ([`8d1a119`](https://github.com/Rizhiy/replete/commit/8d1a119cb
 
 ### Fix
 
+* fix: commit to trigger publish ([`5b1d25a`](https://github.com/Rizhiy/replete/commit/5b1d25adae24b3db1757c6d07e3d15771c9f0cf9))
+
 * fix: drop support for python 3.9 ([`a659887`](https://github.com/Rizhiy/replete/commit/a6598875e6bd79c9f87eb3797f8648ec67b25341))
 
 ### Test
