@@ -12,8 +12,12 @@ dynamic = ["description", "version"]
 dependencies = ["coloredlogs", "docstring-parser", "python-dateutil", "xxhash"]
 
 [project.optional-dependencies]
-test = ["flaky", "pytest", "pytest-asyncio", "pytest-coverage", "types-python-dateutil", "types-xxhash"]
+testing = ["pytest", "pyyaml"]
+test = ["flaky", "pytest", "pytest-asyncio", "pytest-coverage", "replete[testing]", "types-python-dateutil", "types-xxhash"]
 dev = ["replete[test]", "ruff"]
+
+[project.entry-points.pytest11]
+replete = "replete.testing"
 
 [tool.flit.sdist]
 include = ["README.md"]
