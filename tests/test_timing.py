@@ -48,7 +48,7 @@ def test_base_time_ratio():
 def test_rate_limiter_weight():
     rate_limiter = RateLimiter(20, period_seconds=0.2)
 
-    weights = [random.randint(3, 7) for _ in range(20)]
+    weights = [random.randint(3, 7) for _ in range(20)]  # noqa: S311, false positive
     with Timer() as t:
         for weight in weights:
             rate_limiter.check_rate(weight)

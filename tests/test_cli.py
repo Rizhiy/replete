@@ -20,7 +20,7 @@ if TYPE_CHECKING:
 @autocli(fail_on_unknown_args=False, help_width=100, max_help_position=50)
 def example_cli(
     output_dir: Path,
-    no_help: str,
+    no_help: str,  # noqa: ARG001
     res_name: str = "test",
     date_: Optional[dt.date] = None,
     items: Optional[dict[str, int]] = None,
@@ -54,9 +54,7 @@ POSITIONAL_USAGE_TEXT = f"""
 usage: {MAIN_NAME} [-h] [--res-name RES_NAME] [--date DATE] [--items [ITEMS ...]]
                    [--no-type-longname NO_TYPE_LONGNAME]
                    output_dir no_help
-""".strip(
-    "\n"
-)
+""".strip("\n")
 # fmt: off
 OPTIONAL_HELP_TEXT = """
   --res-name RES_NAME                  Name for result (default: test)
@@ -64,7 +62,7 @@ OPTIONAL_HELP_TEXT = """
   --items [ITEMS ...]                  
   --no-type-longname NO_TYPE_LONGNAME
 """.strip(
-    "\n"
+    "\n",
 )
 # fmt: on
 

@@ -6,7 +6,7 @@ from threading import Lock
 
 
 class Timer:
-    def __init__(self, base_time: float = None, process_only=False):
+    def __init__(self, base_time: float = None, *, process_only=False):
         self._base_time = base_time or self.__class__.get_sample_base_time()
         self._time_func = getattr(time, "process_time" if process_only else "perf_counter")
 
@@ -30,7 +30,7 @@ class Timer:
         return self.time / self.base_time
 
     @classmethod
-    def get_sample_base_time(cls, length=24, process_only=False) -> float:
+    def get_sample_base_time(cls, length=24, *, process_only=False) -> float:
         def dumb_fibonacci(n: int) -> int:
             if n < 2:
                 return n

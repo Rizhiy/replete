@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import logging
 import operator
-from typing import TYPE_CHECKING, Callable, Iterable, Iterator, Type, TypeVar, cast, overload
+from typing import TYPE_CHECKING, Callable, Iterable, Iterator, TypeVar, cast, overload
 
 if TYPE_CHECKING:
     TRightDefault = TypeVar("TRightDefault")
@@ -22,8 +22,7 @@ def join_ffill(
     right_lst: Iterable[TRight],
     condition: Callable[[TLeft, TRight], bool] = cast(Callable[[TLeft, TRight], bool], operator.ge),
     default: None = None,
-) -> Iterable[tuple[TLeft, TRight | None]]:
-    ...
+) -> Iterable[tuple[TLeft, TRight | None]]: ...
 
 
 @overload
@@ -32,8 +31,7 @@ def join_ffill(
     right_lst: Iterable[TRight],
     condition: Callable[[TLeft, TRight], bool],
     default: TRightDefault,
-) -> Iterable[tuple[TLeft, TRight | TRightDefault]]:
-    ...
+) -> Iterable[tuple[TLeft, TRight | TRightDefault]]: ...
 
 
 def join_ffill(
@@ -85,8 +83,7 @@ def join_backfill(
     right_lst: Iterable[TRight],
     condition: Callable[[TLeft, TRight], bool] = cast(Callable[[TLeft, TRight], bool], operator.le),
     default: None = None,
-) -> Iterable[tuple[TLeft, TRight | None]]:
-    ...
+) -> Iterable[tuple[TLeft, TRight | None]]: ...
 
 
 @overload
@@ -95,8 +92,7 @@ def join_backfill(
     right_lst: Iterable[TRight],
     condition: Callable[[TLeft, TRight], bool],
     default: TRightDefault,
-) -> Iterable[tuple[TLeft, TRight | TRightDefault]]:
-    ...
+) -> Iterable[tuple[TLeft, TRight | TRightDefault]]: ...
 
 
 def join_backfill(
@@ -139,12 +135,12 @@ def join_backfill(
         yield left_item, default if right_item is right_done_marker else cast(TRight, right_item)
 
 
-def yield_or_skip(iter_: Iterable, func: Callable, skip_on_errors: Iterable[Type[Exception]]) -> Iterator:
+def yield_or_skip(iter_: Iterable, func: Callable, skip_on_errors: Iterable[type[Exception]]) -> Iterator:
     skip_on_errors = tuple(skip_on_errors)
     for item in iter_:
         try:
             yield func(item)
-        except Exception as e:
+        except Exception as e:  # noqa: PERF203 intentional
             if isinstance(e, skip_on_errors):
                 LOGGER.debug(f"Skipping {item} due to {e}")
                 continue

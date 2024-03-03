@@ -33,7 +33,7 @@ def futures_processing_test_vars():
     wait_time = 0.1
 
     def func(str_: str, *, num: int) -> str:
-        time.sleep(wait_time + random.random() * 0.1)
+        time.sleep(wait_time + random.random() * 0.1)  # noqa: S311 false positive
         return str_ * num
 
     args = [(c,) for c in list("abcdefg")]
@@ -125,5 +125,5 @@ def test_weak_lru_cache_gc():
 
     func()
     gc.collect()  # collect garbage
-    # Since f went out of scope after func() finished, it should be garbage collected
+    # Since foo went out of scope after func() finished, it should be garbage collected
     assert len([obj for obj in gc.get_objects() if isinstance(obj, WeakCacheTester)]) == 0

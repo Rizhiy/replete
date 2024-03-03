@@ -40,7 +40,7 @@ CONSISTENT_HASH_TEST_CASES: list[tuple[Any, Any, bool]] = [
     ({"foo": 1, "bar": 2}, {"foo": 1, "quux": 2}, False),
     (ConsistentHashObj(123), ConsistentHashObj(123), True),
     (ConsistentHashObj(123), ConsistentHashObj(1234), False),
-    (dict(cls=ConsistentHashObj), dict(cls=ConsistentHashObj), True),
+    ({"cls": ConsistentHashObj}, {"cls": ConsistentHashObj}, True),
 ]
 
 
@@ -61,7 +61,7 @@ def consistent_hash_ref(*args: Any, **kwargs: Any) -> int:
             hashes.append(consistent_hash(*param))
         else:
             hashes.append(repr(param))
-    hasher = hashlib.md5()
+    hasher = hashlib.md5()  # noqa: S324
     for hash_piece in hashes:
         hasher.update(str(hash_piece).encode())
     return int(hasher.hexdigest(), 16)
@@ -71,8 +71,8 @@ def consistent_hash_ref2_raw(args: Sequence[Any] = (), kwargs: dict[str, Any] | 
     params = [*args, *sorted(kwargs.items())] if kwargs else args
     hasher = xxhash.xxh128()
     for param in params:
-        if hasattr(param, "_consistent_hash") and hasattr(param._consistent_hash, "__self__"):
-            rec_int = param._consistent_hash()
+        if hasattr(param, "consistent_hash") and hasattr(param.consistent_hash, "__self__"):
+            rec_int = param.consistent_hash()
             hasher.update(rec_int.to_bytes(16, "little"))
         elif isinstance(param, Mapping):
             rec = consistent_hash_ref2_raw((), {str(key): value for key, value in param.items()})

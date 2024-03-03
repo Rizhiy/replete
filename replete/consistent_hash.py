@@ -3,7 +3,7 @@ from __future__ import annotations
 import collections.abc
 import contextlib
 import datetime
-import pickle
+import pickle  # noqa S403, not loading anything here, only dumping
 from typing import TYPE_CHECKING
 
 import xxhash
@@ -28,7 +28,7 @@ PRIMITIVE_TYPES = frozenset(
         # And pickling is very slow for `tzinfo` (~25 microseconds).
         # `.timestamp()` is around ~5 microseconds with timezone.
         datetime.datetime,
-    )
+    ),
 )
 
 
@@ -36,6 +36,7 @@ def consistent_hash_raw_update(
     hasher: xxhash.xxh3_64,
     params: Sequence[Any] = (),
     primitive_types: frozenset[type] = PRIMITIVE_TYPES,
+    *,
     type_name_dependence: bool = False,
     try_pickle: bool = True,
 ) -> None:
@@ -51,7 +52,9 @@ def consistent_hash_raw_update(
             hasher.update(b"\x02")
             hasher.update(repr(param).encode())
         elif (chashmeth := getattr(param, "_consistent_hash", None)) is not None and getattr(
-            chashmeth, "__self__", None
+            chashmeth,
+            "__self__",
+            None,
         ) is not None:
             rec_int = chashmeth()
             hasher.update(b"\x03")
@@ -88,7 +91,7 @@ def _normalize(value: Any) -> Any:
     value_type = type(value)
     if value_type in PRIMITIVE_TYPES:
         return value
-    chashmeth = getattr(value, "_consistent_hash", None)
+    chashmeth = getattr(value, "consistent_hash", None)
     if chashmeth is not None and getattr(chashmeth, "__self__", None) is not None:
         return chashmeth()  # Note: makes the result type-independent.
     if value_type is list or value_type is tuple or isinstance(value, (list, tuple)):

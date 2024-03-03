@@ -11,14 +11,6 @@ if TYPE_CHECKING:
     TLazyWrapValue = TypeVar("TLazyWrapValue")
 
 
-async def alist(async_iter: AsyncIterable[T]) -> list[T]:
-    """Simple gatherer of an async iterable into a list"""
-    result = []
-    async for item in async_iter:
-        result.append(item)
-    return result
-
-
 async def achunked(aiterable: AsyncIterable[T], size: int) -> AsyncIterable[list[T]]:
     """Async iterable chunker"""
     chunk: list[T] = []

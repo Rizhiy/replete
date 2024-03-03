@@ -1,9 +1,7 @@
 from __future__ import annotations
 
 import logging
-import re
-from collections.abc import Iterable
-from typing import Any, ClassVar
+from typing import Any, ClassVar, Iterable
 
 LOGGER = logging.getLogger(__name__)
 
@@ -25,15 +23,17 @@ class Register:
     def _set_register_base_class(cls, obj: type[Register], suffix: str = None) -> None:
         if hasattr(cls, "_register_base_class"):
             raise RegisterError(
-                f"Can't set {obj} as base class, base class is already set to {cls._register_base_class}"
+                f"Can't set {obj} as base class, base class is already set to {cls._register_base_class}",
             )
-        obj._register_base_class = obj
-        obj._register_data = {}
+        obj._register_base_class = obj  # noqa: SLF001
+        obj._register_data = {}  # noqa: SLF001
         if suffix is None:
-            suffix_match = re.match(r".*([A-Z][^A-Z]+)$", obj.__name__)  # 'BaseClass2' -> 'Class2'
-            assert suffix_match
-            suffix = suffix_match.group(1)
-        obj._register_suffix = suffix
+            suffix = obj.__name__
+            if suffix.startswith("Base") and len(suffix) != 4:
+                suffix = suffix[4:]
+            if not suffix:
+                raise ValueError(f"Can't find suffix from name = {obj.__name__}, please provide manually")
+        obj._register_suffix = suffix  # noqa: SLF001 # type: ignore
 
     @classmethod
     def register_class(cls, obj: type, name: str = None) -> None:
@@ -51,18 +51,19 @@ class Register:
         if old_cls is not None:
             # Using `__dict__` instead of `hasattr` because `hasattr` includes superclasses.
             if "__attrs_attrs__" in cls.__dict__ and "__attrs_attrs__" not in old_cls.__dict__:
-                old_cls._name_in_register = None
+                old_cls._name_in_register = None  # noqa: SLF001 # type: ignore
             else:
                 raise KeyError(f"{name} is already registered! (Most likely subclass name clash)")
         cls._register_data[name] = obj
 
-        obj._name_in_register = name
+        obj._name_in_register = name  # noqa: SLF001
         # Have to do this, since registered class might not be a subclass of Register.
         # "Cannot assign to a method", "expression has type "classmethod[Any]", variable has type "Callable[[], str]""
         obj.get_name_in_register = classmethod(Register.get_name_in_register.__func__)  # type: ignore
 
     def __init_subclass__(
         cls,
+        *,
         base: bool = False,
         base_class: type = None,
         abstract: bool = False,

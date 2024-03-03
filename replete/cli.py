@@ -6,17 +6,19 @@ import datetime as dt
 import functools
 import inspect
 import typing
+from abc import ABC, abstractmethod
 from collections.abc import Callable
 from dataclasses import dataclass, field
-from typing import TYPE_CHECKING, Any, ClassVar, Generic, NamedTuple, TypeVar, Union, cast, overload  # noqa: TC002
+from typing import Any, ClassVar, Generic, NamedTuple, Sequence, TypeVar, Union, cast, overload
 
 import docstring_parser
 
-if TYPE_CHECKING:
-    from collections.abc import Sequence
 
-    T = TypeVar("T")
+class CLIError(Exception):
+    """Exception for all things CLI"""
 
+
+T = TypeVar("T")
 TRet = TypeVar("TRet")
 TCallable = TypeVar("TCallable", bound=Union[Callable[..., TRet], Callable[..., None]])  # type: ignore
 NoneType = type(None)
@@ -33,21 +35,25 @@ COMMON_ANNOTATIONS_NS: dict[str, Any] = {
 def pairs_to_dict(
     key_parse: Callable[[Any], Any] = str,
     val_parse: Callable[[Any], Any] = str,
+    *,
     allow_empty: bool = True,
-    name: str = "",
 ) -> Callable[[Any], Any]:
+    """
+    Convert list of keys and values into dict
+    """
+
     def _pairs_to_dict_configured(items: Sequence[T] | None) -> dict[T, T]:
         if not items:
             if allow_empty:
                 return {}
-            raise ValueError(f"{name!r}: Must not be empty")
+            raise ValueError("Got empty list of items")
         if isinstance(items, dict):
             return items
         if len(items) % 2 != 0:
-            raise ValueError("Must have key-value pairs (even number)", dict(items=items))
+            raise ValueError("Must have key-value pairs (even number)", {"items": items})
         keys = [key_parse(key) for key in items[::2]]
         values = [val_parse(val) for val in items[1::2]]
-        return dict(zip(keys, values))
+        return dict(zip(keys, values, strict=True))
 
     return _pairs_to_dict_configured
 
@@ -65,8 +71,8 @@ def _resolve_type_annotation(type_annotation: Any, annotations_ns: dict[str, Any
         return None, None
     if isinstance(type_annotation, str):
         try:
-            type_annotation = eval(type_annotation, COMMON_ANNOTATIONS_NS | (annotations_ns or {}))
-        except Exception:
+            type_annotation = eval(type_annotation, COMMON_ANNOTATIONS_NS | (annotations_ns or {}))  # noqa: S307
+        except Exception:  # noqa: BLE001
             return None, None
 
     type_origin = getattr(type_annotation, "__origin__", None)
@@ -87,11 +93,11 @@ def _resolve_type_annotation(type_annotation: Any, annotations_ns: dict[str, Any
         if isinstance(type_args, tuple) and len(type_args) == 2:
             return type_origin, type_args
         return type_origin, None
-    elif type_origin in (list, tuple):
+    if type_origin in (list, tuple):
         if isinstance(type_args, tuple) and len(type_args) == 1:
             return type_origin, type_args[0]
         return type_origin, None
-    elif type_name in ("Sequence", "Iterable"):
+    if type_name in ("Sequence", "Iterable"):
         if isinstance(type_args, tuple) and len(type_args) == 1:
             return list, type_args[0]
         return list, None
@@ -153,7 +159,7 @@ class ParamExtras(NamedTuple):
 
 
 @dataclass
-class AutoCLIBase(Generic[TCallable]):
+class AutoCLIBase(Generic[TCallable], ABC):
     """Base interface for an automatic function-to-CLI processing"""
 
     func: TCallable
@@ -169,20 +175,21 @@ class AutoCLIBase(Generic[TCallable]):
     }
     TYPE_AUTO_PARAMS: ClassVar[dict[Any, Callable[[ParamInfo], ParamExtras]]] = {
         # TODO: actually make the boolean arguments into `--flag/--no-flag`.
-        bool: lambda param_info: ParamExtras(arg_argparse_extra_kwargs=dict(type=parse_bool)),
+        bool: lambda _: ParamExtras(arg_argparse_extra_kwargs={"type": parse_bool}),
         dict: lambda param_info: ParamExtras(
-            arg_argparse_extra_kwargs=dict(nargs="*", type=str),
+            arg_argparse_extra_kwargs={"nargs": "*", "type": str},
             arg_postprocess=pairs_to_dict(
                 key_parse=param_info.contained_type[0] if param_info.contained_type else str,
                 val_parse=param_info.contained_type[1] if param_info.contained_type else str,
             ),
         ),
         list: lambda param_info: ParamExtras(
-            arg_argparse_extra_kwargs=dict(nargs="*", type=param_info.contained_type or str)
+            arg_argparse_extra_kwargs={"nargs": "*", "type": param_info.contained_type or str},
         ),
     }
 
-    def __call__(self, *args: Any, **kwargs: Any) -> TRet | None:
+    @abstractmethod
+    def __call__(self, *args: Any, **kwargs: Any) -> TRet | None:  # type: ignore
         raise NotImplementedError
 
     @classmethod
@@ -199,7 +206,10 @@ class AutoCLIBase(Generic[TCallable]):
         defaults = defaults or {}
         return [
             ParamInfo.from_arg_param(
-                arg_param, doc=params_docs.get(name), annotations_ns=annotations_ns, default=defaults.get(name)
+                arg_param,
+                doc=params_docs.get(name),
+                annotations_ns=annotations_ns,
+                default=defaults.get(name),
             )
             for name, arg_param in signature.parameters.items()
         ]
@@ -233,7 +243,7 @@ class AutoCLI(AutoCLIBase[TCallable]):
     signature_override: inspect.Signature | None = None
     _description_indent: str = "  "
     # mock default for `dataclass`, gets filled in `__post_init__` with an actual value.
-    __wrapped__: Callable[..., Any] = lambda: None
+    __wrapped__: Callable[..., Any] = lambda: None  # noqa: E731
 
     @classmethod
     def _base_param_extras(cls, param_info: ParamInfo) -> ParamExtras:
@@ -274,7 +284,8 @@ class AutoCLI(AutoCLIBase[TCallable]):
         return result
 
     def _make_full_parser_and_params_extras(
-        self, defaults: dict[str, Any]
+        self,
+        defaults: dict[str, Any],
     ) -> tuple[argparse.ArgumentParser, dict[str, ParamExtras]]:
         docs = docstring_parser.parse(self.func.__doc__ or "")
         params_docs = {param.arg_name: param.description for param in docs.params} if docs.params else {}
@@ -282,7 +293,11 @@ class AutoCLI(AutoCLIBase[TCallable]):
         description = _indent(description, self._description_indent)
         parser = self._make_base_parser(description=description)
         param_infos = self._make_param_infos(
-            self.func, params_docs, self.annotations_ns, defaults, self.signature_override
+            self.func,
+            params_docs,
+            self.annotations_ns,
+            defaults,
+            self.signature_override,
         )
         params_extras = self._full_params_extras(param_infos)
         for param in param_infos:
@@ -300,7 +315,7 @@ class AutoCLI(AutoCLIBase[TCallable]):
         formatter_class = type(
             f"_Custom_{formatter_class.__name__}",
             (formatter_class,),
-            dict(_default_width=self.help_width, _default_max_help_position=self.max_help_position),
+            {"_default_width": self.help_width, "_default_max_help_position": self.max_help_position},
         )
         return argparse.ArgumentParser(formatter_class=formatter_class, description=description)  # type: ignore
 
@@ -324,28 +339,27 @@ class AutoCLI(AutoCLIBase[TCallable]):
         param: ParamInfo,
         arg_extra_kwargs: dict[str, Any] | None = None,
     ) -> None:
-        if param.required:
-            arg_name = cls._pos_param_to_arg_name(name)
-        else:
-            arg_name = cls._opt_param_to_arg_name(name)
+        arg_name = cls._pos_param_to_arg_name(name) if param.required else cls._opt_param_to_arg_name(name)
 
         type_converter = cls.TYPE_CONVERTERS.get(param.value_type) or param.value_type
-        arg_kwargs = dict(type=type_converter, help=param.doc)
+        arg_kwargs = {"type": type_converter, "help": param.doc}
         if not param.required:
-            arg_kwargs.update(dict(default=param.default, help=param.doc or " "))
+            arg_kwargs.update({"default": param.default, "help": param.doc or " "})
 
         if param.extra_args:  # `func(*args)`
             # Implementation: `arg_kwargs.update(nargs="*")`
-            raise Exception("Not currently supported: `**args` in function")
+            raise CLIError("Not currently supported: `**args` in function")
         if param.extra_kwargs:  # `func(**kwargs)`
-            raise Exception("Not currently supported: `**kwargs` in function")
+            raise CLIError("Not currently supported: `**kwargs` in function")
         arg_extra_kwargs = dict(arg_extra_kwargs or {})
         arg_extra_args = arg_extra_kwargs.pop("__args__", None) or ()
         arg_kwargs.update(arg_extra_kwargs)
         parser.add_argument(arg_name, *arg_extra_args, **arg_kwargs)  # type: ignore  # very tricky typing.
 
     def _make_overridden_defaults(
-        self, args: tuple[Any, ...], kwargs: dict[str, Any]
+        self,
+        args: tuple[Any, ...],
+        kwargs: dict[str, Any],
     ) -> tuple[dict[str, Any], tuple[Any, ...]]:
         var_args = cast(tuple[Any, ...], ())
         if not args:
@@ -353,20 +367,24 @@ class AutoCLI(AutoCLIBase[TCallable]):
         signature = inspect.signature(self.func)
 
         var_arg = next(
-            (param for param in signature.parameters.values() if param.kind is inspect.Parameter.VAR_POSITIONAL), None
+            (param for param in signature.parameters.values() if param.kind is inspect.Parameter.VAR_POSITIONAL),
+            None,
         )
         var_kwarg = next(
-            (param for param in signature.parameters.values() if param.kind is inspect.Parameter.VAR_KEYWORD), None
+            (param for param in signature.parameters.values() if param.kind is inspect.Parameter.VAR_KEYWORD),
+            None,
         )
         if var_arg is not None:
-            raise Exception("Not currently supported: `**args` in function")
+            raise CLIError("Not currently supported: `**args` in function")
         if var_kwarg is not None:
-            raise Exception("Not currently supported: `**kwargs` in function")
+            raise CLIError("Not currently supported: `**kwargs` in function")
 
         return signature.bind_partial(*args, **kwargs).arguments, var_args
 
     def _postprocess_values(
-        self, parsed_kwargs: dict[str, Any], params_extras: dict[str, ParamExtras]
+        self,
+        parsed_kwargs: dict[str, Any],
+        params_extras: dict[str, ParamExtras],
     ) -> dict[str, Any]:
         parsed_kwargs = parsed_kwargs.copy()
         for name, param_extras in params_extras.items():
@@ -374,15 +392,15 @@ class AutoCLI(AutoCLIBase[TCallable]):
                 parsed_kwargs[name] = param_extras.arg_postprocess(parsed_kwargs[name])
         return parsed_kwargs
 
-    def __call__(self, *args: Any, **kwargs: Any) -> TRet | None:
+    def __call__(self, *args: Any, **kwargs: Any) -> TRet | None:  # type: ignore
         defaults, var_args = self._make_overridden_defaults(args, kwargs)
 
         parser, params_extras = self._make_full_parser_and_params_extras(defaults=defaults)
         params, unknown_args = parser.parse_known_args(self.argv)
         if unknown_args and self.fail_on_unknown_args:
-            raise Exception("Unrecognized arguments", dict(unknown_args=unknown_args))
-        parsed_args = params._get_args()  # generally, an empty list.
-        parsed_kwargs_base = params._get_kwargs()
+            raise SystemExit("Unrecognized arguments", {"unknown_args": unknown_args})
+        parsed_args = params._get_args()  # generally, an empty list.  # noqa: SLF001
+        parsed_kwargs_base = params._get_kwargs()  # noqa: SLF001
         arg_name_to_param_name = {
             extras.name_norm or param_name: param_name for param_name, extras in params_extras.items()
         }
@@ -391,7 +409,7 @@ class AutoCLI(AutoCLIBase[TCallable]):
 
         full_args = [*var_args, *parsed_args]
         full_kwargs = {**kwargs, **parsed_kwargs}
-        return self.func(*full_args, **full_kwargs)
+        return self.func(*full_args, **full_kwargs)  # type: ignore
 
 
 def get_caller_ns(extra_stack: int = 0) -> dict[str, Any] | None:
@@ -408,17 +426,16 @@ def get_caller_ns(extra_stack: int = 0) -> dict[str, Any] | None:
 
 
 @overload
-def autocli(func: TCallable, **config: Any) -> AutoCLI[TCallable]:
-    ...
+def autocli(func: TCallable, **config: Any) -> AutoCLI[TCallable]: ...
 
 
 @overload
-def autocli(func: None = None, **config: Any) -> Callable[[TCallable], AutoCLI[TCallable]]:
-    ...
+def autocli(func: None = None, **config: Any) -> Callable[[TCallable], AutoCLI[TCallable]]: ...
 
 
 def autocli(
-    func: TCallable | None = None, **config: Any
+    func: TCallable | None = None,
+    **config: Any,
 ) -> AutoCLI[TCallable] | Callable[[TCallable], AutoCLI[TCallable]]:
     actual_config = config.copy()
 

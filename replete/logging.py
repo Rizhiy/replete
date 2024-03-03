@@ -4,10 +4,12 @@ import logging
 import sys
 import traceback
 import warnings
-from pathlib import Path
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
 from coloredlogs import DEFAULT_FIELD_STYLES, DEFAULT_LEVEL_STYLES, ColoredFormatter
+
+if TYPE_CHECKING:
+    from pathlib import Path
 
 ORIGINAL_SHOWWARNINGS = warnings.showwarning
 
@@ -18,7 +20,7 @@ def _warn_with_traceback(message, category, filename, lineno, file=None, line=No
     ORIGINAL_SHOWWARNINGS(message, category, filename, lineno, file, line)
 
 
-class warn_with_traceback:
+class WarnWithTraceback:
     def __enter__(self) -> None:
         self._orig_show = warnings.showwarning
         warnings.showwarning = _warn_with_traceback
@@ -27,13 +29,13 @@ class warn_with_traceback:
         warnings.showwarning = ORIGINAL_SHOWWARNINGS
 
 
-def assert_with_logging(status: bool, message: str):
+def assert_with_logging(status: bool, message: str):  # noqa: FBT001
     if not status:
         logging.critical(message)
-    assert status, message
+    assert status, message  # noqa: S101
 
 
-class change_logging_level:
+class ChangeLoggingLevel:
     def __init__(self, level: int):
         self._level = level
         self._original_level: int = None
@@ -57,7 +59,7 @@ def offset_logger_level(logger: logging.Logger, amount: int):
     logger.addFilter(change_level)
 
 
-def get_file_handler(log_file: Path, logging_level: int | str = logging.DEBUG, append=True, use_year=False):
+def get_file_handler(log_file: Path, logging_level: int | str = logging.DEBUG, *, append=True, use_year=False):
     file_handler = logging.FileHandler(log_file, mode="a" if append else "w")
     formatter = get_logging_formatter(use_year=use_year)
     file_handler.setFormatter(formatter)
@@ -79,7 +81,11 @@ CUSTOM_FORMAT = "{asctime:^} [{levelname:^8s}]({name:>30s}+{lineno:>4d}): {messa
 
 
 def get_logging_formatter(
-    color=False, level_styles_update: StylesType = None, field_styles_update: StylesType = None, use_year=False
+    *,
+    color=False,
+    use_year=False,
+    level_styles_update: StylesType = None,
+    field_styles_update: StylesType = None,
 ):
     fmt = CUSTOM_FORMAT
     maybe_year = "%Y-" if use_year else ""
@@ -115,9 +121,10 @@ class FilterWhitelist(logging.Filter):
 def setup_logging(
     log_file: Path = None,
     print_level: int | str = logging.INFO,
+    *,
     append=False,
-    level_styles_update: dict[str, dict[str, Any]] = {},
-    field_styles_update: dict[str, dict[str, Any]] = {},
+    level_styles_update: dict[str, dict[str, Any]] = None,
+    field_styles_update: dict[str, dict[str, Any]] = None,
     disable_colors=False,
     log_uncaught_exceptions=True,
     use_year=False,
@@ -135,11 +142,16 @@ def setup_logging(
     :param use_year: Add year to logs
     :param whitelist: Only log these modules
     """
+    level_styles_update = level_styles_update or {}
+    field_styles_update = field_styles_update or {}
     if isinstance(print_level, str):
         print_level = int(print_level) if print_level.isdigit() else getattr(logging, print_level)
     formatter = get_logging_formatter(use_year=use_year)
     colored_formatter = get_logging_formatter(
-        color=True, level_styles_update=level_styles_update, field_styles_update=field_styles_update, use_year=use_year
+        color=True,
+        level_styles_update=level_styles_update,
+        field_styles_update=field_styles_update,
+        use_year=use_year,
     )
 
     handlers = []

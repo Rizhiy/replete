@@ -3,7 +3,7 @@ from __future__ import annotations
 import datetime as dt
 from typing import Iterable
 
-from dateutil.relativedelta import relativedelta
+from dateutil.relativedelta import relativedelta  # noqa: TCH002, required for doctests
 
 
 def date_range(start: dt.date, stop: dt.date, step_days: int = 1) -> Iterable[dt.date]:
@@ -41,7 +41,8 @@ def datetime_range(start: dt.datetime, stop: dt.datetime | None, step: dt.timede
     >>> _dts_s(datetime_range(dt1, dt2, dt.timedelta(seconds=11.11111111111)))[-1]
     '2022-02-03T23:59:59.998272'
     """
-    assert step, "must be non-zero"
+    if not step:
+        raise ValueError(f"Step must be positive, step = {step}")
     forward = step > dt.timedelta()
     current = start
     while True:
@@ -52,7 +53,9 @@ def datetime_range(start: dt.datetime, stop: dt.datetime | None, step: dt.timede
 
 
 def round_dt(
-    datetime: dt.datetime, delta: dt.timedelta | relativedelta, start_time: dt.time = dt.time.min
+    datetime: dt.datetime,
+    delta: dt.timedelta | relativedelta,
+    start_time: dt.time = dt.time.min,
 ) -> dt.datetime:
     """
     Round time-from-midnight to the specified timedelta.
@@ -100,8 +103,7 @@ def round_dt(
                 microsecond=start_time.microsecond,
             )
             return ts_start + dt.timedelta(seconds=(datetime - ts_start).total_seconds() // seconds * seconds)
-        else:
-            raise ValueError(f"Timedelta should be one day or less, got: {delta}")
+        raise ValueError(f"Timedelta should be one day or less, got: {delta}")
 
     if any([delta.microseconds, delta.seconds, delta.minutes, delta.hours]):
         raise ValueError("relativedelta more precise than day is not supported, use timedelta")
@@ -117,9 +119,11 @@ def round_dt(
     )
 
     if delta.years == 0:
-        assert delta.months in [1, 2, 3, 4, 6], "months should be 1, 2, 3, 4 or 6"
+        if delta.months not in [1, 2, 3, 4, 6]:
+            raise ValueError(f"delta.months should be 1, 2, 3, 4 or 6. Got {delta=}")
         return datetime.replace(month=1 + (datetime.month - 1) // delta.months * delta.months)
 
-    assert delta.months == 0, "months should be 0 if years are used"
+    if delta.months != 0:
+        raise ValueError(f"delta.months should be 0 if years are used. Got {delta=}")
     datetime = datetime.replace(month=1)
     return datetime.replace(year=datetime.year // delta.years * delta.years)

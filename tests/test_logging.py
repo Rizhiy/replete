@@ -6,19 +6,19 @@ from pathlib import Path
 
 import pytest
 
-from replete import assert_with_logging, setup_logging, warn_with_traceback
-from replete.logging import change_logging_level, offset_logger_level
+from replete import WarnWithTraceback, assert_with_logging, setup_logging
+from replete.logging import ChangeLoggingLevel, offset_logger_level
 
 
 def test_warnings_traceback(capsys):
-    with pytest.warns(UserWarning), warn_with_traceback():
-        warnings.warn("Test")
+    with pytest.warns(UserWarning), WarnWithTraceback():
+        warnings.warn("Test")  # noqa: B028
     captured = capsys.readouterr()
     assert captured.out == ""
     assert len(captured.err) > 4
 
     with pytest.warns(UserWarning):
-        warnings.warn("Test")
+        warnings.warn("Test")  # noqa: B028
     captured = capsys.readouterr()
     assert captured.out == ""
     assert captured.err == ""
@@ -29,7 +29,7 @@ def test_change_logging_level(caplog):
     logging.basicConfig(level=logging.DEBUG)
     logger = logging.getLogger(__name__)
     logger.info("before")
-    with change_logging_level(logging.WARNING):
+    with ChangeLoggingLevel(logging.WARNING):
         logger.info("inside")
     logger.info("after")
     assert "before" in caplog.text
@@ -38,9 +38,9 @@ def test_change_logging_level(caplog):
 
 
 def test_assert_with_logging(caplog):
-    assert_with_logging(True, "bar")
+    assert_with_logging(True, "bar")  # noqa: FBT003
     with pytest.raises(AssertionError):
-        assert_with_logging(False, "foo")
+        assert_with_logging(False, "foo")  # noqa: FBT003
     assert caplog.record_tuples == [("root", logging.CRITICAL, "foo")]
 
 
