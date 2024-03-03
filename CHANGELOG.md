@@ -2,6 +2,17 @@
 
 
 
+## v2.0.1 (2024-03-03)
+
+### Documentation
+
+* docs: add ruff badge ([`d4281b1`](https://github.com/Rizhiy/replete/commit/d4281b181bf903eedd101ae52940283c524dc239))
+
+### Fix
+
+* fix: try to trigger release again ([`711bdd8`](https://github.com/Rizhiy/replete/commit/711bdd80e4a082e8a5a7e1f8d3800c13eb5d7db5))
+
+
 ## v2.0.0 (2024-03-03)
 
 ### Breaking
