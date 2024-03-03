@@ -1,5 +1,6 @@
 # Useful tools for Python
 
+[![Ruff](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/astral-sh/ruff/main/assets/badge/v2.json)](https://github.com/astral-sh/ruff)
 ![tests](https://github.com/Rizhiy/replete/actions/workflows/test_and_version.yml/badge.svg)
 [![codecov](https://codecov.io/gh/Rizhiy/replete/graph/badge.svg?token=FHM9FQ6IIU)](https://codecov.io/gh/Rizhiy/replete)
 ![publish](https://github.com/Rizhiy/replete/actions/workflows/publish.yml/badge.svg)
