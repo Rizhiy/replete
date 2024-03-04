@@ -1,4 +1,4 @@
-import pickle  # noqa: S403
+import pickle
 import warnings
 from pathlib import Path
 

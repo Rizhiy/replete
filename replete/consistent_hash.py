@@ -3,7 +3,7 @@ from __future__ import annotations
 import collections.abc
 import contextlib
 import datetime
-import pickle  # noqa S403, not loading anything here, only dumping
+import pickle
 from typing import TYPE_CHECKING
 
 import xxhash
