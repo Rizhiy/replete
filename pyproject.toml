@@ -14,7 +14,7 @@ dependencies = ["coloredlogs", "docstring-parser", "python-dateutil", "xxhash"]
 [project.optional-dependencies]
 testing = ["pytest<8", "pyyaml"]
 test = ["flaky", "pytest", "pytest-asyncio", "pytest-coverage", "replete[testing]", "types-python-dateutil", "types-xxhash"]
-dev = ["replete[test]", "ruff"]
+dev = ["black", "isort", "replete[test]", "ruff"]
 
 [project.entry-points.pytest11]
 replete = "replete.testing"
@@ -30,6 +30,14 @@ version_variables = ["replete/__init__.py:__version__"]
 minversion = "6.0"
 addopts = "--doctest-modules --no-success-flaky-report"
 asyncio_mode = "auto"
+
+[tool.black]
+line-length = 120
+# skip-magic-trailing-comma = true
+
+[tool.isort]
+profile = "black"
+line_length = 120
 
 [tool.yamlfix]
 line_length = 120
