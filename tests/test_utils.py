@@ -9,7 +9,7 @@ import pytest
 from flaky import flaky
 
 from replete import Timer, ensure_unique_keys, split_list
-from replete.utils import futures_processing, weak_lru_cache
+from replete.utils import convert_size, futures_processing, weak_lru_cache
 
 
 def test_unique_keys():
@@ -127,3 +127,16 @@ def test_weak_lru_cache_gc():
     gc.collect()  # collect garbage
     # Since foo went out of scope after func() finished, it should be garbage collected
     assert len([obj for obj in gc.get_objects() if isinstance(obj, WeakCacheTester)]) == 0
+
+
+@pytest.mark.parametrize(
+    ("size", "string"),
+    [
+        (2, "2.0 B"),
+        (1024, "1.0 KiB"),
+        (3 * 1024**2, "3.0 MiB"),
+        (4.31 * 1024**3, "4.31 GiB"),
+    ],
+)
+def test_convert_size(size: int, string: str):
+    assert convert_size(size) == string

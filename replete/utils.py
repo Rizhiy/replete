@@ -3,6 +3,7 @@ from __future__ import annotations
 import functools
 import itertools
 import logging
+import math
 import weakref
 from concurrent import futures
 from typing import TYPE_CHECKING, Any, Callable, Hashable, Iterable, Iterator, Mapping, Sequence, TypeVar
@@ -174,6 +175,7 @@ def futures_processing(
                 yield func_result
 
 
+# TODO: This function doesn't seem to work with multiple instances of a class, need to debug
 def weak_lru_cache(maxsize: Callable | int | None = 128, *, typed=False):
     """
     LRU Cache decorator that keeps a weak reference to 'self'
@@ -199,3 +201,13 @@ def weak_lru_cache(maxsize: Callable | int | None = 128, *, typed=False):
         raise ValueError("Expected maxsize to be an integer or None")
 
     return functools.partial(helper, maxsize, typed=typed)
+
+
+def convert_size(size_bytes):
+    if size_bytes == 0:
+        return "0B"
+    size_name = ("B", "KiB", "MiB", "GiB", "TiB", "PiB", "EiB", "ZiB", "YiB")
+    i = int(math.floor(math.log(size_bytes, 1024)))
+    p = math.pow(1024, i)
+    s = round(size_bytes / p, 2)
+    return f"{s} {size_name[i]}"
