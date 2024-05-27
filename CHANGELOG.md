@@ -2,6 +2,25 @@
 
 
 
+## v2.2.0 (2024-05-27)
+
+### Chore
+
+* chore(test_and_version): add requests update to release ([`898b48a`](https://github.com/Rizhiy/replete/commit/898b48a4ef1f74bc6d608fa3e55a7d9bd65259cd))
+
+* chore: add LICENSE ([`c4ed272`](https://github.com/Rizhiy/replete/commit/c4ed272d814bf74a206ecc9ddb839e2402c463e2))
+
+* chore: disable S403, S404 globally ([`51ff3fa`](https://github.com/Rizhiy/replete/commit/51ff3fa1d31e66bf631b99b603db2e727f152319))
+
+### Documentation
+
+* docs: add pre-commit and add dev instructions in README ([`c2f32c5`](https://github.com/Rizhiy/replete/commit/c2f32c5b388f0668a213b26dbd452aee741d1991))
+
+### Feature
+
+* feat(utils): add convert_size ([`50572d3`](https://github.com/Rizhiy/replete/commit/50572d3bc9fb4d44b54975fd9de9a0ec09ac04a4))
+
+
 ## v2.1.0 (2024-03-03)
 
 ### Ci
