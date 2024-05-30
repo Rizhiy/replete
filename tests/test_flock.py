@@ -15,7 +15,7 @@ TIMEOUT = 10
 def _increase_file(path: Path) -> bool:
     lock = FileLock(path.parent / f"{path.name}.lock")
     for _ in range(NUM_INCREASE):
-        with lock.write_lock, path.open("r+") as f:
+        with lock.write_lock(), path.open("r+") as f:
             last_line = f.readline().strip()
             f.seek(0)
             f.write(f"{int(last_line or 0) + 1}\n")
@@ -26,7 +26,7 @@ def _read_file(path: Path) -> bool:
     lock = FileLock(path.parent / f"{path.name}.lock")
     start = time()
     while time() < start + TIMEOUT:
-        with lock.read_lock, path.open("r+") as f:
+        with lock.read_lock(), path.open("r+") as f:
             last_line = f.readline().strip()
             if last_line and int(last_line) == REQUIRED_TOTAL:
                 return True
@@ -45,3 +45,40 @@ def test_parallel(tmp_path, executor_cls):
         futures.wait(results)
     assert len(results) == MAX_WORKERS * 2
     assert all(future.result() for future in results)
+
+
+def test_read_read_reentrant(tmp_path):
+    path = tmp_path / "tmp.txt"
+    with path.open("w") as f:
+        f.write("TEST\n")
+    lock_path = path.parent / f"{path.name}.lock"
+    with FileLock(lock_path).read_lock(), FileLock(lock_path).read_lock(), path.open("r") as f:
+        assert f.read().strip() == "TEST"
+
+
+def test_write_read_fail(tmp_path):
+    path = tmp_path / "tmp.txt"
+    with path.open("w") as f:
+        f.write("TEST\n")
+    lock_path = path.parent / f"{path.name}.lock"
+    with (
+        pytest.raises(BlockingIOError),
+        FileLock(lock_path).write_lock(),
+        FileLock(lock_path).read_lock(non_blocking=True),
+        path.open("r") as f,
+    ):
+        assert f.read().strip() == "TEST"
+
+
+def test_read_write_fail(tmp_path):
+    path = tmp_path / "tmp.txt"
+    with path.open("w") as f:
+        f.write("TEST\n")
+    lock_path = path.parent / f"{path.name}.lock"
+    with (
+        pytest.raises(BlockingIOError),
+        FileLock(lock_path).read_lock(),
+        FileLock(lock_path).write_lock(non_blocking=True),
+        path.open("r") as f,
+    ):
+        assert f.read().strip() == "TEST"
