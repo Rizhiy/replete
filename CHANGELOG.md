@@ -2,11 +2,18 @@
 
 
 
-## v2.3.0 (2024-05-30)
+## v2.3.1 (2024-06-01)
+
+### Fix
+
+* fix(flock): make it actually re-entrant ([`39e1536`](https://github.com/Rizhiy/replete/commit/39e15362fcd1f317545a0f0fdccbc18e05c14ddf))
+
+
+## v2.3.0 (2024-06-01)
 
 ### Feature
 
-* feat(flock): allow non-blocking and add re-entrant tests ([`c0a4a1f`](https://github.com/Rizhiy/replete/commit/c0a4a1f97b69c1d838e186b4f7abba5d4f5c27a6))
+* feat(flock): allow non-blocking and add more tests ([`0e0d844`](https://github.com/Rizhiy/replete/commit/0e0d8449f3797c14d36a20b10a4e1e33da0a2af7))
 
 * feat(flock): add basic filelock implementation ([`f5e88d0`](https://github.com/Rizhiy/replete/commit/f5e88d01483b0a60dab012d89d5d6b5437a3b3d9))
 
