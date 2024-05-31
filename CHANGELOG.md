@@ -2,11 +2,15 @@
 
 
 
-## v2.3.1 (2024-06-01)
+## v2.3.1 (2024-05-31)
 
 ### Fix
 
 * fix(flock): make it actually re-entrant ([`39e1536`](https://github.com/Rizhiy/replete/commit/39e15362fcd1f317545a0f0fdccbc18e05c14ddf))
+
+### Unknown
+
+* 2.3.1 ([`4755e18`](https://github.com/Rizhiy/replete/commit/4755e18a910711c4b0fb3ebdeeffe3846f181c92))
 
 
 ## v2.3.0 (2024-06-01)
