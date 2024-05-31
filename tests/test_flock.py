@@ -52,33 +52,49 @@ def test_read_read_reentrant(tmp_path):
     with path.open("w") as f:
         f.write("TEST\n")
     lock_path = path.parent / f"{path.name}.lock"
-    with FileLock(lock_path).read_lock(), FileLock(lock_path).read_lock(), path.open("r") as f:
+    lock = FileLock(lock_path)
+    with lock.read_lock(), lock.read_lock(), path.open("r") as f:
         assert f.read().strip() == "TEST"
 
 
-def test_write_read_fail(tmp_path):
+# If we have already acquired a write lock (exclusive), we should be able to get a read lock
+def test_write_read_reentrant(tmp_path):
     path = tmp_path / "tmp.txt"
     with path.open("w") as f:
         f.write("TEST\n")
     lock_path = path.parent / f"{path.name}.lock"
+    lock = FileLock(lock_path)
     with (
-        pytest.raises(BlockingIOError),
-        FileLock(lock_path).write_lock(),
-        FileLock(lock_path).read_lock(non_blocking=True),
+        lock.write_lock(),
+        lock.read_lock(non_blocking=True),
         path.open("r") as f,
     ):
         assert f.read().strip() == "TEST"
 
 
-def test_read_write_fail(tmp_path):
+def test_read_write_error(tmp_path):
     path = tmp_path / "tmp.txt"
-    with path.open("w") as f:
-        f.write("TEST\n")
     lock_path = path.parent / f"{path.name}.lock"
-    with (
-        pytest.raises(BlockingIOError),
-        FileLock(lock_path).read_lock(),
-        FileLock(lock_path).write_lock(non_blocking=True),
-        path.open("r") as f,
-    ):
-        assert f.read().strip() == "TEST"
+    lock = FileLock(lock_path)
+    with pytest.raises(BlockingIOError), lock.read_lock():
+        lock.write_lock(non_blocking=True).acquire()
+
+
+def test_write_write_error(tmp_path):
+    path = tmp_path / "tmp.txt"
+    lock_path = path.parent / f"{path.name}.lock"
+    lock = FileLock(lock_path)
+    with pytest.raises(BlockingIOError), lock.write_lock():
+        lock.write_lock(non_blocking=True).acquire()
+
+
+def test_write_read_reentrant_wrong_release_order_error(tmp_path):
+    path = tmp_path / "tmp.txt"
+    lock_path = path.parent / f"{path.name}.lock"
+    lock = FileLock(lock_path)
+    write_lock = lock.write_lock()
+    read_lock = lock.read_lock()
+    write_lock.acquire()
+    read_lock.acquire()
+    with pytest.raises(ValueError, match="unreleased read lock"):
+        write_lock.release()
