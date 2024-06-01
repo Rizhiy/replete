@@ -2,6 +2,13 @@
 
 
 
+## v2.3.2 (2024-06-01)
+
+### Fix
+
+* fix(flock): Make it write-write re-entrant as well ([`558de35`](https://github.com/Rizhiy/replete/commit/558de35e543bf1aa93a35ecfba7558fde5d1c3f5))
+
+
 ## v2.3.1 (2024-05-31)
 
 ### Fix
