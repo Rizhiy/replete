@@ -48,53 +48,39 @@ def test_parallel(tmp_path, executor_cls):
 
 
 def test_read_read_reentrant(tmp_path):
-    path = tmp_path / "tmp.txt"
-    with path.open("w") as f:
-        f.write("TEST\n")
-    lock_path = path.parent / f"{path.name}.lock"
+    lock_path = tmp_path / "file.lock"
     lock = FileLock(lock_path)
-    with lock.read_lock(), lock.read_lock(), path.open("r") as f:
-        assert f.read().strip() == "TEST"
+    with lock.read_lock(), lock.read_lock(non_blocking=True):
+        pass
 
 
-# If we have already acquired a write lock (exclusive), we should be able to get a read lock
 def test_write_read_reentrant(tmp_path):
-    path = tmp_path / "tmp.txt"
-    with path.open("w") as f:
-        f.write("TEST\n")
-    lock_path = path.parent / f"{path.name}.lock"
+    lock_path = tmp_path / "file.lock"
     lock = FileLock(lock_path)
-    with (
-        lock.write_lock(),
-        lock.read_lock(non_blocking=True),
-        path.open("r") as f,
-    ):
-        assert f.read().strip() == "TEST"
+    with lock.write_lock(), lock.read_lock(non_blocking=True):
+        pass
+
+
+def test_write_write_reentrant(tmp_path):
+    lock_path = tmp_path / "file.lock"
+    lock = FileLock(lock_path)
+    with lock.write_lock(), lock.write_lock(non_blocking=True):
+        pass
 
 
 def test_read_write_error(tmp_path):
-    path = tmp_path / "tmp.txt"
-    lock_path = path.parent / f"{path.name}.lock"
+    lock_path = tmp_path / "file.lock"
     lock = FileLock(lock_path)
     with pytest.raises(BlockingIOError), lock.read_lock():
         lock.write_lock(non_blocking=True).acquire()
 
 
-def test_write_write_error(tmp_path):
-    path = tmp_path / "tmp.txt"
-    lock_path = path.parent / f"{path.name}.lock"
-    lock = FileLock(lock_path)
-    with pytest.raises(BlockingIOError), lock.write_lock():
-        lock.write_lock(non_blocking=True).acquire()
-
-
-def test_write_read_reentrant_wrong_release_order_error(tmp_path):
-    path = tmp_path / "tmp.txt"
-    lock_path = path.parent / f"{path.name}.lock"
+def test_reentrant_wrong_release_order_error(tmp_path):
+    lock_path = tmp_path / "file.lock"
     lock = FileLock(lock_path)
     write_lock = lock.write_lock()
     read_lock = lock.read_lock()
     write_lock.acquire()
     read_lock.acquire()
-    with pytest.raises(ValueError, match="unreleased read lock"):
+    with pytest.raises(ValueError, match="unreleased dependent lock"):
         write_lock.release()

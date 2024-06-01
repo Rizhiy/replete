@@ -19,10 +19,11 @@ class FileLock:
         self._file_path.parent.mkdir(parents=True, exist_ok=True)
         self._file_path.touch(exist_ok=True)
 
+        self._locked = False
         self._fd: TextIOWrapper | None = None
         self._lock_code: int | None = None
         self._write_locks: list[FileLock] = []
-        self._read_locks: list[FileLock] = []
+        self._dependent_locks: list[FileLock] = []
 
     @property
     def file_path(self) -> Path:
@@ -30,7 +31,7 @@ class FileLock:
 
     @property
     def locked(self) -> bool:
-        return self._fd is not None
+        return self._locked
 
     def _get_locked_write_lock_or_none(self) -> FileLock | None:
         if self._write_locks and any(lock.locked for lock in self._write_locks):
@@ -52,6 +53,7 @@ class FileLock:
             raise ValueError("Can't get read lock when lock is already acquired")
         self_copy = copy.copy(self)
         self_copy._lock_code = fcntl.LOCK_EX  # noqa: SLF001
+        self_copy._write_locks = self._write_locks  # noqa: SLF001
         if non_blocking:
             self_copy._lock_code |= fcntl.LOCK_NB  # noqa: SLF001
         self._write_locks.append(self_copy)
@@ -62,15 +64,15 @@ class FileLock:
             raise ValueError("Can't acquire bare lock, please use either read_lock or write_lock")
 
         self._fd = self._file_path.open()
-        # If write lock already exists and locked, we can give read lock
-        if self._lock_code in {fcntl.LOCK_SH, fcntl.LOCK_SH | fcntl.LOCK_NB}:
-            write_lock = self._get_locked_write_lock_or_none()
-            if write_lock:
-                write_lock._read_locks.append(self)  # noqa: SLF001
-                return
+        write_lock = self._get_locked_write_lock_or_none()
+        if write_lock:
+            write_lock._dependent_locks.append(self)  # noqa: SLF001
+            self._locked = True
+            return
 
         try:
             fcntl.flock(self._fd, self._lock_code)
+            self._locked = True
         except BlockingIOError:
             # Release resources if we fail acquiring non-blocking lock
             self._fd.close()
@@ -81,19 +83,18 @@ class FileLock:
         if not self._fd:
             raise ValueError(f"Lock on {self._file_path} is not acquired and cannot be released")
 
-        if self._lock_code in {fcntl.LOCK_EX, fcntl.LOCK_EX | fcntl.LOCK_NB} and self._read_locks:
+        if self._lock_code in {fcntl.LOCK_EX, fcntl.LOCK_EX | fcntl.LOCK_NB} and self._dependent_locks:
             raise ValueError(
-                "Found unreleased read lock, please release all read locks before releasing main write lock!",
+                "Found unreleased dependent lock, please release all read locks before releasing main write lock!",
             )
 
         # Check if read lock was acquired over write lock and remove ourselves from dependencies
-        if self._lock_code in {fcntl.LOCK_SH, fcntl.LOCK_SH | fcntl.LOCK_NB}:
-            write_lock = self._get_locked_write_lock_or_none()
-            if write_lock:
-                write_lock._read_locks.remove(self)  # noqa: SLF001
-                self._fd.close()
-                self._fd = None
-                return
+
+        self._locked = False
+        write_lock = self._get_locked_write_lock_or_none()
+        if write_lock:
+            write_lock._dependent_locks.remove(self)  # noqa: SLF001
+            return
 
         fcntl.flock(self._fd, fcntl.LOCK_UN)
         self._fd.close()
