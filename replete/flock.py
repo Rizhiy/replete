@@ -88,8 +88,6 @@ class FileLock:
                 "Found unreleased dependent lock, please release all read locks before releasing main write lock!",
             )
 
-        # Check if read lock was acquired over write lock and remove ourselves from dependencies
-
         self._locked = False
         write_lock = self._get_locked_write_lock_or_none()
         if write_lock:
